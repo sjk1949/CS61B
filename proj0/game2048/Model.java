@@ -5,7 +5,7 @@ import java.util.Observable;
 
 
 /** The state of a game of 2048.
- *  @author TODO: YOUR NAME HERE
+ *  @author sjk1949
  */
 public class Model extends Observable {
     /** Current contents of the board. */
@@ -113,6 +113,46 @@ public class Model extends Observable {
         // TODO: Modify this.board (and perhaps this.score) to account
         // for the tilt to the Side SIDE. If the board changed, set the
         // changed local variable to true.
+        Tile tile;
+        int upTileValue; // the tile value which is at the top of the tile, if no tile, set to 0.
+        int newRow; // the final row of the top tile, if no tile, set to board.size() - 1.
+        boolean isMerged; // whether the top tile is merged.
+
+        board.setViewingPerspective(side);
+
+        for (int col = 0; col < board.size(); col++){
+            upTileValue = 0;
+            newRow = board.size() - 1;
+            isMerged = false;
+            for (int row = board.size() - 1; row >= 0; row--){
+                tile = tile(col, row);
+                if (tile != null){ // if there are no tiles above.
+                    if (upTileValue == 0) {
+                        newRow = board.size() - 1;
+                    } else if (tile.value() == upTileValue && !isMerged){ // a tile with same value is not merged yet.
+                        score += upTileValue * 2;
+                    } else { // a tile with no same value or have been merged.
+                        newRow = newRow - 1;
+                    }
+
+                    /*
+                    if(tile.row() != newRow){
+                        changed = true;
+                        isMerged = board.move(col, newRow, tile);
+                    }
+                    false example, because tile.row() returns the real pos, but newRow returns the relative pos.
+                    */
+
+                    if(row != newRow){
+                        changed = true;
+                        isMerged = board.move(col, newRow, tile);
+                    }
+                    upTileValue = tile.value();
+                }
+            }
+        }
+
+        board.setViewingPerspective(Side.NORTH);
 
         checkGameOver();
         if (changed) {
@@ -137,7 +177,11 @@ public class Model extends Observable {
      *  Empty spaces are stored as null.
      * */
     public static boolean emptySpaceExists(Board b) {
-        // TODO: Fill in this function.
+        for (Tile tile : b){
+            if (tile == null){
+                return true;
+            }
+        }
         return false;
     }
 
@@ -147,7 +191,11 @@ public class Model extends Observable {
      * given a Tile object t, we get its value with t.value().
      */
     public static boolean maxTileExists(Board b) {
-        // TODO: Fill in this function.
+        for (Tile tile : b){
+            if (tile != null && tile.value() == MAX_PIECE){
+                return true;
+            }
+        }
         return false;
     }
 
@@ -158,7 +206,19 @@ public class Model extends Observable {
      * 2. There are two adjacent tiles with the same value.
      */
     public static boolean atLeastOneMoveExists(Board b) {
-        // TODO: Fill in this function.
+        if (emptySpaceExists(b)){
+            return true;
+        }
+
+        for (Tile tile : b){
+            if (tile != null){
+                if (tile.col() - 1 >= 0 && tile.value() == b.tile(tile.col() - 1,tile.row()).value()){
+                    return true;
+                } else if (tile.row() - 1 >= 0 && tile.value() == b.tile(tile.col(),tile.row() - 1).value()){
+                    return true;
+                }
+            }
+        }
         return false;
     }
 
