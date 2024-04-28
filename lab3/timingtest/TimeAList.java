@@ -28,7 +28,7 @@ public class TimeAList {
         AList<Integer> opCounts = new AList<>();
         for (int i = 0; i < Ns.size(); i++) {
             int N = Ns.get(i);
-            SLList<Integer> L = new SLList<>();
+            AList<Integer> L = new AList<>();
             int j = 0;
             int opCount = 0;
             Stopwatch sw = new Stopwatch();
