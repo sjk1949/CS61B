@@ -1,3 +1,7 @@
+/** Array based deque.
+ *  @author sjk1949
+ */
+
 package deque;
 
 public class ArrayDeque<T> {
@@ -55,20 +59,26 @@ public class ArrayDeque<T> {
     }
 
     public T removeFirst() {
+        if(isEmpty()) {
+            return null;
+        }
         if (size() < items.length / 4 && items.length > initialSize) {
             this.resize(items.length / 2);
         }
-        nextFirst += 1;
+        nextFirst = indexAdd(nextFirst, 1);
         T item = items[nextFirst];
         items[nextFirst] = null;
         return item;
     }
 
     public T removeLast() {
+        if (isEmpty()) {
+            return null;
+        }
         if (size() < items.length / 4 && items.length > initialSize) {
             this.resize(items.length / 2);
         }
-        nextLast -= 1;
+        nextLast = indexAdd(nextLast, -1);
         T item = items[nextLast];
         items[nextLast] = null;
         return item;
@@ -92,6 +102,14 @@ public class ArrayDeque<T> {
         }
         nextFirst = newNextFirst;
         items = newItems;
+    }
+
+    /** Calculate the true index when index add one number
+     * @return the result index*/
+    private int indexAdd(int index, int num) {
+        index += num;
+        index = index % items.length;
+        return index;
     }
 
     private int indexToArray(int index) {

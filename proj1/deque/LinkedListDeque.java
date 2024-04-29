@@ -1,3 +1,7 @@
+/** Link list based deque.
+ *  @author sjk1949
+ */
+
 package deque;
 
 public class LinkedListDeque<T> {
@@ -57,16 +61,24 @@ public class LinkedListDeque<T> {
     }
 
     public T removeFirst() {
+        if (isEmpty()) {
+            return null;
+        }
         Node node = sentinel.next;
         node.next.prior = sentinel;
         sentinel.next = node.next;
+        size -= 1;
         return node.item;
     }
 
     public T removeLast() {
+        if (isEmpty()) {
+            return null;
+        }
         Node node = sentinel.prior;
         node.prior.next = sentinel;
         sentinel.prior = node.prior;
+        size -= 1;
         return node.item;
     }
 
