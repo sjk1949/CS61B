@@ -105,10 +105,15 @@ public class ArrayDeque<T> {
     }
 
     /** Calculate the true index when index add one number
+     * @param num the add number, can be negative
      * @return the result index*/
     private int indexAdd(int index, int num) {
         index += num;
         index = index % items.length;
+        // if index is negative
+        if (index < 0) {
+            index += items.length;
+        }
         return index;
     }
 
