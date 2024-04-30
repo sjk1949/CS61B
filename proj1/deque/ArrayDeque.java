@@ -9,6 +9,7 @@ public class ArrayDeque<T> {
     private T[] items;
     private int nextFirst;
     private int nextLast;
+    private int size;
 
     private final int initialSize = 8;
 
@@ -16,6 +17,7 @@ public class ArrayDeque<T> {
         items = (T[]) new Object[initialSize];
         nextFirst = items.length - 1;
         nextLast = 0;
+        size = 0;
     }
 
     public void addFirst(T item) {
@@ -24,6 +26,7 @@ public class ArrayDeque<T> {
         }
         items[nextFirst] = item;
         nextFirst -= 1;
+        size += 1;
     }
 
     public void addLast(T item) {
@@ -32,6 +35,7 @@ public class ArrayDeque<T> {
         }
         items[nextLast] = item;
         nextLast += 1;
+        size += 1;
     }
 
     public boolean isEmpty() {
@@ -39,11 +43,11 @@ public class ArrayDeque<T> {
     }
 
     public int size() {
-        return items.length - nextFirst + nextLast - 1;
+        return size;
     }
 
     private boolean isFull() {
-        return nextFirst < nextLast;
+        return size() == items.length;
     }
 
     public void printDeque() {
@@ -68,6 +72,7 @@ public class ArrayDeque<T> {
         nextFirst = indexAdd(nextFirst, 1);
         T item = items[nextFirst];
         items[nextFirst] = null;
+        size -= 1;
         return item;
     }
 
@@ -81,6 +86,7 @@ public class ArrayDeque<T> {
         nextLast = indexAdd(nextLast, -1);
         T item = items[nextLast];
         items[nextLast] = null;
+        size -= 1;
         return item;
     }
 
@@ -105,6 +111,7 @@ public class ArrayDeque<T> {
     }
 
     /** Calculate the true index when index add one number
+     * @param index the real index in the array
      * @param num the add number, can be negative
      * @return the result index*/
     private int indexAdd(int index, int num) {
@@ -117,6 +124,7 @@ public class ArrayDeque<T> {
         return index;
     }
 
+    /** Transfer the index in deque to the real index in array*/
     private int indexToArray(int index) {
         int arrayIndex;
         if (items.length - nextFirst - 1 > index) {
