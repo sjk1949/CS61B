@@ -6,7 +6,7 @@ package deque;
 
 public class ArrayDeque<T> {
 
-    private T[] items;
+    public T[] items;
     private int nextFirst;
     private int nextLast;
     private int size;
@@ -25,7 +25,7 @@ public class ArrayDeque<T> {
             this.resize(items.length * 2);
         }
         items[nextFirst] = item;
-        nextFirst -= 1;
+        nextFirst = indexAdd(nextFirst, -1);
         size += 1;
     }
 
@@ -34,7 +34,7 @@ public class ArrayDeque<T> {
             this.resize(items.length * 2);
         }
         items[nextLast] = item;
-        nextLast += 1;
+        nextLast = indexAdd(nextLast, 1);
         size += 1;
     }
 
@@ -99,14 +99,16 @@ public class ArrayDeque<T> {
 
     //public boolean equals(Object o) {}
 
-    private void resize(int capacity) {
+    public void resize(int capacity) {
         T[] newItems = (T[]) new Object[capacity];
-        System.arraycopy(items, 0, newItems, 0, nextLast);
-        int newNextFirst = newItems.length - items.length + nextFirst;
-        if (nextFirst != items.length - 1) {
-            System.arraycopy(items, nextFirst + 1, newItems, newNextFirst + 1, newItems.length - newNextFirst - 1);
+        if (indexAdd(nextLast, -1) >= indexAdd(nextFirst, 1)) {
+            System.arraycopy(items, indexAdd(nextFirst, 1), newItems, 0, indexAdd(nextLast, -1) - indexAdd(nextFirst, 1) + 1);
+        } else {
+            System.arraycopy(items, indexAdd(nextFirst, 1), newItems, 0, items.length - nextFirst - 1);
+            System.arraycopy(items, 0, newItems, items.length - nextFirst - 1, nextLast);
         }
-        nextFirst = newNextFirst;
+        nextFirst = newItems.length - 1;
+        nextLast = size();
         items = newItems;
     }
 
