@@ -1,3 +1,7 @@
+/** ArrayDeque with max method
+ *  @author sjk1949
+ */
+
 package deque;
 
 import java.util.Comparator;

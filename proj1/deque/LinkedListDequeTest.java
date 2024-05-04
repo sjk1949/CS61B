@@ -126,7 +126,7 @@ public class LinkedListDequeTest {
         LinkedListDeque<Integer> L = new LinkedListDeque<>();
         ArrayDeque<Integer> L2 = new ArrayDeque<>();
 
-        int N = 100000;
+        int N = 10000000;
         for (int i = 0; i < N; i++) {
             int operationNumber = StdRandom.uniform(0, 6);
             if (operationNumber == 0) {
@@ -154,5 +154,34 @@ public class LinkedListDequeTest {
                 assertEquals(L.removeLast(), L2.removeLast());
             }
         }
+    }
+
+    @Test
+    public void equalTest() {
+        Deque<Integer> L = new LinkedListDeque<>();
+        L.addLast(1);
+        L.addLast(3);
+        L.addLast(5);
+        Deque<Integer> L2 = new ArrayDeque<>();
+        L2.addLast(1);
+        L2.addLast(3);
+        L2.addLast(5);
+        Deque<Integer> L3 = new LinkedListDeque<>();
+        L3.addLast(1);
+        L3.addLast(3);
+        L3.addLast(5);
+        L3.addLast(7);
+        Deque<String> L4 = new LinkedListDeque<>();
+        L4.addLast("hello");
+        L4.addLast("I'm");
+        L4.addLast("String deque");
+        // test self
+        assertEquals(L, L);
+        // test different implements
+        assertEquals(L, L2);
+        // test size different
+        assertNotEquals(L, L3);
+        // test type different
+        assertNotEquals(L, L4);
     }
 }
