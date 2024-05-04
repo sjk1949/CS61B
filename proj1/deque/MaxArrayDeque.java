@@ -29,11 +29,11 @@ public class MaxArrayDeque<T> extends ArrayDeque<T> {
         for (int i = 0; i < size(); i++) {
             thisItem = get(i);
             if (maxItem == null || thisItem == null) {
-                if(maxItem == null) {
+                if (maxItem == null) {
                     maxItem = get(i);
                 }
             } else {
-                if(c.compare(thisItem, maxItem) > 0) {
+                if (c.compare(thisItem, maxItem) > 0) {
                     maxItem = thisItem;
                 }
             }

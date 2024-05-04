@@ -6,12 +6,12 @@ package deque;
 
 import java.util.Iterator;
 
-public class ArrayDeque<T> implements Deque<T>,Iterable<T> {
+public class ArrayDeque<T> implements Deque<T>, Iterable<T> {
 
     private class ArrayDequeIterator implements Iterator<T> {
         private int pos;
 
-        public ArrayDequeIterator() {
+        ArrayDequeIterator() {
             pos = 0;
         }
 
@@ -26,7 +26,7 @@ public class ArrayDeque<T> implements Deque<T>,Iterable<T> {
         }
     }
 
-    public T[] items;
+    private T[] items;
     private int nextFirst;
     private int nextLast;
     private int size;
@@ -84,7 +84,7 @@ public class ArrayDeque<T> implements Deque<T>,Iterable<T> {
 
     @Override
     public T removeFirst() {
-        if(isEmpty()) {
+        if (isEmpty()) {
             return null;
         }
         if (size() < items.length / 4 && items.length > initialSize) {
@@ -114,7 +114,9 @@ public class ArrayDeque<T> implements Deque<T>,Iterable<T> {
 
     @Override
     public T get(int index) {
-        if (index >= this.size()) {return null;}
+        if (index >= this.size()) {
+            return null;
+        }
         return items[indexToArray(index)];
     }
 
@@ -146,10 +148,13 @@ public class ArrayDeque<T> implements Deque<T>,Iterable<T> {
 
     public void resize(int capacity) {
         T[] newItems = (T[]) new Object[capacity];
+        int copyLength;
         if (indexAdd(nextLast, -1) >= indexAdd(nextFirst, 1)) {
-            System.arraycopy(items, indexAdd(nextFirst, 1), newItems, 0, indexAdd(nextLast, -1) - indexAdd(nextFirst, 1) + 1);
+            copyLength = indexAdd(nextLast, -1) - indexAdd(nextFirst, 1) + 1;
+            System.arraycopy(items, indexAdd(nextFirst, 1), newItems, 0, copyLength);
         } else {
-            System.arraycopy(items, indexAdd(nextFirst, 1), newItems, 0, items.length - nextFirst - 1);
+            copyLength = items.length - nextFirst - 1;
+            System.arraycopy(items, indexAdd(nextFirst, 1), newItems, 0, copyLength);
             System.arraycopy(items, 0, newItems, items.length - nextFirst - 1, nextLast);
         }
         nextFirst = newItems.length - 1;

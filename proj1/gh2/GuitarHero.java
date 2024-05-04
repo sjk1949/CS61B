@@ -1,7 +1,5 @@
 package gh2;
 
-import deque.ArrayDeque;
-import deque.Deque;
 import edu.princeton.cs.algs4.StdAudio;
 import edu.princeton.cs.algs4.StdDraw;
 
@@ -12,7 +10,7 @@ public class GuitarHero {
 
     public static void main(String[] args) {
         /* create 37 guitar strings in a deque */
-        GuitarString[] stringSet= new GuitarString[STRING_NUMBER];
+        GuitarString[] stringSet = new GuitarString[STRING_NUMBER];
         for (int i = 0; i < STRING_NUMBER; i++) {
             double frequency = CONCERT_A * Math.pow(2, (i - 24.0) / 12.0);
             stringSet[i] = new GuitarString(frequency);

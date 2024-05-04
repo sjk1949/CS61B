@@ -32,6 +32,10 @@ public class ArrayDequeTest {
         assertEquals(6, (int) L.get(2));
     }
 
+    /** This Test is forbidden because it's usage of private valuable and method, however, resize() is
+     * such a difficult job that isn't usually happen when used Deque normally, I don't know whether there
+     * is a better choice rather than change it to public and test it.
+
     @Test
     public void resizeTest() {
         ArrayDeque<Integer> L;
@@ -70,4 +74,5 @@ public class ArrayDequeTest {
         L.resize(capacity);
         assertEquals(expect, L.items);
     }
+    */
 }
