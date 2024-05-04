@@ -146,7 +146,7 @@ public class ArrayDeque<T> implements Deque<T>, Iterable<T> {
         return false;
     }
 
-    public void resize(int capacity) {
+    private void resize(int capacity) {
         T[] newItems = (T[]) new Object[capacity];
         int copyLength;
         if (indexAdd(nextLast, -1) >= indexAdd(nextFirst, 1)) {
