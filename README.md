@@ -40,3 +40,14 @@ if (o instanceof Deque) {
     ...
 }
 ```
+
+## lab4a
+issue: 由于课程已经完成了，所有项目文件都是直接克隆下来的，助教当时设置的合并冲突无法通过pull出现了，只能想办法回溯到过去的状态。
+
+solution: 参考[这位老哥的cs61b笔记](https://github.com/lyorz/CS61B-labs)lab4部分，新建一个分支onlyforlab4回到之前的状态。
+```bash
+git checkout dd477f37b7c97f22868aa7482e2391fbced60bf6
+git branch onlyforlab4
+git checkout onlyforlab4
+```
+回到了lab1还没做的时候，这个时候重做一遍lab1并提交，然后就可以`git pull skeleton master`了，最后用`git push --set-upstream origin onlyforlab4`把onlyforlab4分支传到github的仓库中。
