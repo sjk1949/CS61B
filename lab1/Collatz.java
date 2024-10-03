@@ -4,8 +4,21 @@
 public class Collatz {
     public static void main(String[] args) {
         int n = 5;
+        while (n != 1) {
+            System.out.print(n + " ");
+            n = nextNumber(n);
+        }
         System.out.print(n + " ");
+    }
 
+    /** return the next number
+     * @param n int this number*/
+    public static int nextNumber(int n) {
+        if(n % 2 == 0) {
+            return n / 2;
+        } else {
+            return 3 * n + 1;
+        }
     }
 }
 
