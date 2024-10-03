@@ -29,3 +29,14 @@ solution: 打开`GUISource.java`，找到`getKey()`方法，将它开头几行�
                 break;
         }
 ```
+
+## proj1
+issue: Hug在课上讲了一种在`public boolean equal(Object o)`这个从Object重载的method中判断对象类别的java特性，用类似于`if(o instanceof Deque deque){}`这样的语句同时完成类别判断和赋值两件事，但是autograder貌似不支持这一操作...
+
+solution: 老老实实的把这行命令拆成了两行:
+```java
+if (o instanceof Deque) {
+    Deque deque = (Deque) o;
+    ...
+}
+```
