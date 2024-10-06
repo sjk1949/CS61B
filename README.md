@@ -51,3 +51,13 @@ git branch onlyforlab4
 git checkout onlyforlab4
 ```
 回到了lab1还没做的时候，这个时候重做一遍lab1并提交，然后就可以`git pull skeleton master`了，最后用`git push --set-upstream origin onlyforlab4`把onlyforlab4分支传到github的仓库中。
+
+## lab6
+issue: 在完成最后一部分"Mandatory Epilogue: Debugging"时，在命令行中运行
+`python runner.py --debug our/test02-two-part-story.in`报错，提示`KeyError: 'REPO_DIR'`。
+
+solution: 由于cs61b用的批处理软件是git bush，我们只需要输入下面一行命令
+```bash
+export REPO_DIR=[这里输入你的cs61b仓库的路径]
+```
+将这个环境变量改成正确的即可，之后运行的时候可能能成功进去，但是还是提示路径不对，这时要检查一下仓库名字，运行runner.py需要git仓库必须要命名成"sp21-s*"，把文件夹重命名一下就可以了。
