@@ -1,7 +1,6 @@
 package bstmap;
 
-import java.util.Iterator;
-import java.util.Set;
+import java.util.*;
 
 public class BSTMap<K extends Comparable<K>, V> implements Map61B<K, V> {
 
@@ -51,22 +50,60 @@ public class BSTMap<K extends Comparable<K>, V> implements Map61B<K, V> {
 
     @Override
     public Set<K> keySet() {
-        throw new UnsupportedOperationException();
+        Set<K> keySet = new HashSet<>();
+        for (K key : this) {
+            keySet.add(key);
+        }
+        return keySet;
     }
 
     @Override
     public V remove(K key) {
-        throw new UnsupportedOperationException();
+        BSTNode node = find(this.root, key);
+        if (node == null) {
+            return null;
+        }
+        V removeNodeValue = node.value;
+        this.root = remove(this.root, key);
+        this.size --;
+        return removeNodeValue;
     }
 
     @Override
     public V remove(K key, V value) {
-        throw new UnsupportedOperationException();
+        BSTNode node = find(this.root, key);
+        if (node == null) {
+            return null;
+        }
+        if (node.value == value) {
+            return remove(key);
+        }
+        return node.value;
     }
 
     @Override
     public Iterator<K> iterator() {
-        throw new UnsupportedOperationException();
+        return new BSTNodeIterator();
+    }
+
+    private class BSTNodeIterator implements Iterator<K> {
+
+        private List<BSTNode> nodeList = new ArrayList<>();
+
+        public BSTNodeIterator() {
+            inOrderTraversel(root, this.nodeList);
+        }
+
+        public boolean hasNext() {
+            return !this.nodeList.isEmpty();
+        }
+
+        public K next() {
+            if (!hasNext()) {
+                throw new NoSuchElementException();
+            }
+            return this.nodeList.remove(0).key;
+        }
     }
 
     private class BSTNode {
@@ -98,9 +135,10 @@ public class BSTMap<K extends Comparable<K>, V> implements Map61B<K, V> {
         if (node == null) {
             return new BSTNode(key, value);
         }
-        if (key.compareTo(node.key) == 0) {
+        int cmp = key.compareTo(node.key);
+        if (cmp == 0) {
             node.value = value;
-        } else if (key.compareTo(node.key) < 0) {
+        } else if (cmp < 0) {
             node.left = insert(node.left, key, value);
         } else {
             node.right = insert(node.right, key, value);
@@ -114,5 +152,54 @@ public class BSTMap<K extends Comparable<K>, V> implements Map61B<K, V> {
             System.out.print(node.key + " ");
             inOrderTraversel(node.right);
         }
+    }
+
+    /** A function to return inOrderTraversel BSTNode list
+     *
+     * @param node the tree with the root node that is going to traversel
+     * @param nodeList the return of the sorted Keys
+     */
+
+    private void inOrderTraversel(BSTNode node, List<BSTNode> nodeList) {
+        if (node != null) {
+            inOrderTraversel(node.left, nodeList);
+            nodeList.add(node);
+            inOrderTraversel(node.right, nodeList);
+        }
+    }
+
+    private BSTNode remove(BSTNode node, K key) {
+        if (node == null) {
+            return null;
+        }
+        int cmp = key.compareTo(node.key);
+        if (cmp < 0) {
+            node.left = remove(node.left, key);
+        } else if (cmp > 0) {
+            node.right = remove(node.right, key);
+        } else { // if the node is the one that is going to remove
+            if (node.left == null && node.right == null) {
+                return null;
+            }
+            if (node.left == null) {
+                return node.right;
+            } else if (node.right == null) {
+                return node.left;
+            }
+
+            BSTNode maxNode = findMax(node.left);
+            node.left = remove(node.left, maxNode.key);
+            maxNode.left = node.left;
+            maxNode.right = node.right;
+            return maxNode;
+        }
+        return node;
+    }
+
+    private BSTNode findMax(BSTNode node) {
+        while (node.right != null) {
+            node = node.right;
+        }
+        return node;
     }
 }
