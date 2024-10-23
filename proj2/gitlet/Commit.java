@@ -100,7 +100,13 @@ public class Commit implements Serializable {
         return filehash;
     }
 
+    /** Return the SHA-id of the given filename */
     public String gethash(String filename) {
         return this.fileMap.get(filename);
+    }
+
+    /** Return whether the file of this filename exists in this Commit */
+    public boolean contains(String filename) {
+        return this.fileMap.containsKey(filename);
     }
 }

@@ -16,6 +16,7 @@ import static gitlet.Utils.*;
  * .gitlet/ top level folder of all persistent data
  *      - commits/ -- folder containing all commits that saved
  *      - stage/ -- folder containing all of the staging file through add command
+ *      - remove/ -- folder containing all of the file that is going to remove tracking through rm command
  *      - objects/ -- folder containing each unique version of the file added through the commit command
  *      - HEAD -- file containing the current HEAD commit hash
  *  TODO: It's a good idea to give a description here of what else this Class
@@ -40,13 +41,16 @@ public class Repository {
     public static final File COMMITS_DIR = join(GITLET_DIR, "commits");
     /** The .gitlet/stage directory. */
     public static final File STAGE_DIR = join(GITLET_DIR, "stage");
+    /** The .gitlet/remove directory. */
+    public static final File REMOVE_DIR = join(GITLET_DIR, "remove");
     /** The .gitlet/objects directory. */
     public static final File OBJECTS_DIR = join(GITLET_DIR, "objects");
     /** The HEAD file */
     public static final File HEAD_FILE = join(GITLET_DIR, "HEAD");
 
-    /** SHA-1 id of the current commit. */
+    /** SHA-1 id of the current commit. Use only after load(). Use save() to preserve */
     private static String HEAD;
+    /** The current commit. Use only after load() */
     private static Commit HEAD_COMMIT;
 
     /* TODO: fill in the rest of this class. */
@@ -57,12 +61,13 @@ public class Repository {
     public static void init() {
         if (GITLET_DIR.exists()) {
             Utils.message("A Gitlet version-control system already exists in the current directory.");
-            return;
+            System.exit(0);
         }
         // Init the repository
         GITLET_DIR.mkdir();
         COMMITS_DIR.mkdir();
         STAGE_DIR.mkdir();
+        REMOVE_DIR.mkdir();
         OBJECTS_DIR.mkdir();
         try{
             HEAD_FILE.createNewFile();
@@ -72,13 +77,18 @@ public class Repository {
         // Create the first Commit
         Commit initCommit = new Commit("initial commit", new Date(0));
         HEAD = initCommit.saveCommit();
-        Repository.save();
+        save();
     }
 
     /**
-     * This method is going to load the variables back.
+     * This method is going to load the variables back. Also check if there is a .gitlet folder.
      */
     public static void load() {
+        if (!GITLET_DIR.exists()) { // Check if in a gitlet repo
+            Utils.message("Not in an initialized Gitlet directory.");
+            // return; can't use in this place or the code will keep running
+            System.exit(0);
+        }
         HEAD = readContentsAsString(HEAD_FILE);
         HEAD_COMMIT = Commit.fromFile(HEAD);
     }
@@ -97,13 +107,13 @@ public class Repository {
      * @param filename the name of the file being added
      */
     public static void add(String filename) {
-        Repository.load();
+        load();
         File file = join(CWD, filename);
         if (!file.exists()) {
             message("File does not exist.");
             System.exit(0);
         }
-        String filehash = sha1(filename, readContents(file));
+        String filehash = sha1(filename, readContents(file)); // Use both the filename and contents to make sure they are identical
         if (filehash.equals(HEAD_COMMIT.gethash(filename))) { // The situation that curr commit have similar file
             File stagedFile = join(STAGE_DIR, filename);
             if (stagedFile.exists()) {
@@ -122,11 +132,20 @@ public class Repository {
      * @param message the commit message
      */
     public static void commit(String message) {
-        Repository.load();
+        load();
         Commit currCommit = Commit.fromFile(HEAD);
+        if (message.isEmpty()) {
+            message("Please enter a commit message.");
+            System.exit(0);
+        }
         Commit commit = new Commit(message, currCommit);
         // Add all of the files in the staging folder to the commit
+        // If there is no files in the staging folder, exit
         List<String> files = plainFilenamesIn(STAGE_DIR);
+        if (files.isEmpty()) {
+            message("No changes added to the commit.");
+            System.exit(0);
+        }
         List<String> filesInObjects = plainFilenamesIn(OBJECTS_DIR);
         String filehash;
         for (String filename : files) {
@@ -140,6 +159,26 @@ public class Repository {
             file.delete(); // Remove all of the files in the staging area
         }
         HEAD = commit.saveCommit();
-        Repository.save();
+        save();
+    }
+
+    /**
+     * Unstage the file if it's currently staged for addition
+     * If the file is tracked in the current commit, stage it for removal and remove it from CWD(if user hasn't done)
+     * If is neither staged nor tracked by head, exit
+     */
+    public static void rm(String filename) {
+        load();
+        List<String> files = plainFilenamesIn(STAGE_DIR);
+        if (files.contains(filename)) {
+            join(STAGE_DIR, filename).delete();
+        } else if (HEAD_COMMIT.contains(filename)) {
+            if (join(CWD, filename).exists()) {
+                // TODO:
+            }
+        } else {
+            message("No reason to remove the file.");
+            System.exit(0);
+        }
     }
 }
