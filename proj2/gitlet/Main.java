@@ -18,7 +18,7 @@ public class Main {
         switch(firstArg) {
             case "init":
                 validateNumArgs(args, 1);
-                // TODO: handle the `init` command
+                Repository.init();
                 break;
             case "add":
                 validateNumArgs(args, 2);
