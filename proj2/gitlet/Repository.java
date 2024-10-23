@@ -3,6 +3,7 @@ package gitlet;
 import java.io.File;
 import java.io.IOException;
 import java.util.Date;
+import java.util.List;
 
 import static gitlet.Utils.*;
 
@@ -46,6 +47,7 @@ public class Repository {
 
     /** SHA-1 id of the current commit. */
     private static String HEAD;
+    private static Commit HEAD_COMMIT;
 
     /* TODO: fill in the rest of this class. */
 
@@ -70,10 +72,74 @@ public class Repository {
         // Create the first Commit
         Commit initCommit = new Commit("initial commit", new Date(0));
         HEAD = initCommit.saveCommit();
+        Repository.save();
+    }
+
+    /**
+     * This method is going to load the variables back.
+     */
+    public static void load() {
+        HEAD = readContentsAsString(HEAD_FILE);
+        HEAD_COMMIT = Commit.fromFile(HEAD);
+    }
+
+    /**
+     * This method is going to save the variables to files to set up persistence.
+     */
+    public static void save() {
         writeContents(HEAD_FILE, HEAD);
     }
 
-    public static void add(String filename) {}
+    /**
+     * Save the file to the .gitlet/stage folder.
+     * Check the current commit, if there is already an identical file, delete it.
+     * If the file is not exist, exit.
+     * @param filename the name of the file being added
+     */
+    public static void add(String filename) {
+        Repository.load();
+        File file = join(CWD, filename);
+        if (!file.exists()) {
+            message("File does not exist.");
+            System.exit(0);
+        }
+        String filehash = sha1(filename, readContents(file));
+        if (filehash.equals(HEAD_COMMIT.gethash(filename))) { // The situation that curr commit have similar file
+            File stagedFile = join(STAGE_DIR, filename);
+            if (stagedFile.exists()) {
+                stagedFile.delete();
+            }
+        } else {
+            File stageFile = join(STAGE_DIR, filename);
+            byte[] content = readContents(file);
+            writeContents(stageFile, content);
+        }
+    }
 
-    public static void commit() {}
+    /**
+     * Create a commit which keep versions of files and update the staged file.
+     * After that, HEAD pointer will point to it and remove all of the files in staging area.
+     * @param message the commit message
+     */
+    public static void commit(String message) {
+        Repository.load();
+        Commit currCommit = Commit.fromFile(HEAD);
+        Commit commit = new Commit(message, currCommit);
+        // Add all of the files in the staging folder to the commit
+        List<String> files = plainFilenamesIn(STAGE_DIR);
+        List<String> filesInObjects = plainFilenamesIn(OBJECTS_DIR);
+        String filehash;
+        for (String filename : files) {
+            File file = join(STAGE_DIR, filename);
+            filehash = commit.updateFile(file);
+            // If this file is not exist, add it to the objects. We consider the SHA-1 id is unique.
+            if (!filesInObjects.contains(filehash)) {
+                File fileInObjects = join(OBJECTS_DIR, filehash);
+                writeContents(fileInObjects, readContents(file));
+            }
+            file.delete(); // Remove all of the files in the staging area
+        }
+        HEAD = commit.saveCommit();
+        Repository.save();
+    }
 }

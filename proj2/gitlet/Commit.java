@@ -5,6 +5,9 @@ package gitlet;
 import java.io.File;
 import java.io.Serializable;
 import java.util.Date; // TODO: You'll likely use this in this class
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 import static gitlet.Repository.*;
 import static gitlet.Utils.*;
@@ -31,20 +34,30 @@ public class Commit implements Serializable {
 
     /** The parent of this Commit. */
     private Commit parent;
-    /** The list of hash code of the files contain in this Commit. */
-    private String[] hashList;
+    /** The map of hash code and filename of the files contain in this Commit. */
+    private Map<String, String> fileMap;
 
     /* TODO: fill in the rest of this class. */
     /** A Commit object which use the local time as timestamp. */
     public Commit(String message) {
         this.message = message;
         this.timestamp = new Date();
+        this.fileMap = new HashMap<>();
     }
 
     /** A Commit object which use the given timestamp. */
     public Commit(String message, Date time) {
         this.message = message;
         this.timestamp = time;
+        this.fileMap = new HashMap<>();
+    }
+
+    /** A Commit object which set parent and copy its parent's fileList. */
+    public Commit(String message, Commit parent) {
+        this.message = message;
+        this.timestamp = new Date();
+        this.setParent(parent);
+        this.copyFileMap(parent);
     }
 
     /** Save the commit to file in .gitlet/commits/ for the sake of persistence.
@@ -61,8 +74,33 @@ public class Commit implements Serializable {
      * Reload a saved Commit from file.
      * @param filename the SHA-1 id of the Commit
      */
-    public Commit fromFile(String filename) {
+    public static Commit fromFile(String filename) {
         File commitFile = join(COMMITS_DIR, filename);
         return readObject(commitFile, Commit.class);
+    }
+
+    public void setParent(Commit parent) {
+        this.parent = parent;
+    }
+
+    public void copyFileMap(Commit commit) {
+        this.fileMap = new HashMap<>();
+        this.fileMap.putAll(commit.fileMap);
+    }
+
+    /**
+     * Update the given file in the file map.
+     * @param file the file that is going to save in the file map
+     * @return the SHA-1 id of the file
+     */
+    public String updateFile(File file) {
+        String filename = file.getName();
+        String filehash = sha1(filename, readContents(file));
+        this.fileMap.put(filename, filehash);
+        return filehash;
+    }
+
+    public String gethash(String filename) {
+        return this.fileMap.get(filename);
     }
 }

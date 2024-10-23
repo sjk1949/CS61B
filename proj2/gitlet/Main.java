@@ -22,13 +22,13 @@ public class Main {
                 break;
             case "add":
                 validateNumArgs(args, 2);
-                // TODO: handle the `add [filename]` command
+                Repository.add(args[1]);
                 break;
-            // TODO: FILL THE REST IN
             case "commit":
                 validateNumArgs(args, 2);
-                // TODO: handle the `commit [message]` command
+                Repository.commit(args[1]);
                 break;
+            // TODO: FILL THE REST IN
             default:
                 Utils.message("No command with that name exists.");
                 System.exit(0);
