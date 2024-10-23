@@ -6,10 +6,18 @@ import static gitlet.Utils.*;
 // TODO: any imports you need here
 
 /** Represents a gitlet repository.
+ * This class has the main logic of the application. It sets up and manges the persistence.
+ * The structure of the repository is as follows:
+ *
+ * .gitlet/ top level folder of all persistent data
+ *      - commits/ -- folder containing all commits that saved
+ *      - stage/ -- folder containing all of the staging file through add command
+ *      - objects/ -- folder containing each unique version of the file added through the commit command
+ *      - HEAD -- file containing the current HEAD commit hash
  *  TODO: It's a good idea to give a description here of what else this Class
  *  does at a high level.
  *
- *  @author TODO
+ *  @author sjk1949
  */
 public class Repository {
     /**
