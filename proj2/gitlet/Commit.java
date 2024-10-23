@@ -109,4 +109,8 @@ public class Commit implements Serializable {
     public boolean contains(String filename) {
         return this.fileMap.containsKey(filename);
     }
+
+    public void remove(String filename) {
+        this.fileMap.remove(filename);
+    }
 }

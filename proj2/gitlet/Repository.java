@@ -2,8 +2,7 @@ package gitlet;
 
 import java.io.File;
 import java.io.IOException;
-import java.util.Date;
-import java.util.List;
+import java.util.*;
 
 import static gitlet.Utils.*;
 
@@ -16,9 +15,9 @@ import static gitlet.Utils.*;
  * .gitlet/ top level folder of all persistent data
  *      - commits/ -- folder containing all commits that saved
  *      - stage/ -- folder containing all of the staging file through add command
- *      - remove/ -- folder containing all of the file that is going to remove tracking through rm command
  *      - objects/ -- folder containing each unique version of the file added through the commit command
  *      - HEAD -- file containing the current HEAD commit hash
+ *      - REMOVE -- file contains a list of files to be removed in the next commit
  *  TODO: It's a good idea to give a description here of what else this Class
  *  does at a high level.
  *
@@ -41,17 +40,19 @@ public class Repository {
     public static final File COMMITS_DIR = join(GITLET_DIR, "commits");
     /** The .gitlet/stage directory. */
     public static final File STAGE_DIR = join(GITLET_DIR, "stage");
-    /** The .gitlet/remove directory. */
-    public static final File REMOVE_DIR = join(GITLET_DIR, "remove");
     /** The .gitlet/objects directory. */
     public static final File OBJECTS_DIR = join(GITLET_DIR, "objects");
     /** The HEAD file */
     public static final File HEAD_FILE = join(GITLET_DIR, "HEAD");
+    /** The REMOVE file */
+    public static final File REMOVE_FILE = join(GITLET_DIR, "REMOVE");
 
     /** SHA-1 id of the current commit. Use only after load(). Use save() to preserve */
     private static String HEAD;
     /** The current commit. Use only after load() */
     private static Commit HEAD_COMMIT;
+
+    private static HashSet<String> REMOVE_LIST;
 
     /* TODO: fill in the rest of this class. */
 
@@ -67,16 +68,17 @@ public class Repository {
         GITLET_DIR.mkdir();
         COMMITS_DIR.mkdir();
         STAGE_DIR.mkdir();
-        REMOVE_DIR.mkdir();
         OBJECTS_DIR.mkdir();
         try{
             HEAD_FILE.createNewFile();
+            REMOVE_FILE.createNewFile();
         } catch (IOException e) {
             System.err.println("Error creating file: " + e.getMessage());
         }
         // Create the first Commit
         Commit initCommit = new Commit("initial commit", new Date(0));
         HEAD = initCommit.saveCommit();
+        REMOVE_LIST = new HashSet<>();
         save();
     }
 
@@ -91,6 +93,7 @@ public class Repository {
         }
         HEAD = readContentsAsString(HEAD_FILE);
         HEAD_COMMIT = Commit.fromFile(HEAD);
+        REMOVE_LIST = readObject(REMOVE_FILE, HashSet.class);
     }
 
     /**
@@ -98,6 +101,7 @@ public class Repository {
      */
     public static void save() {
         writeContents(HEAD_FILE, HEAD);
+        writeObject(REMOVE_FILE, REMOVE_LIST);
     }
 
     /**
@@ -142,9 +146,13 @@ public class Repository {
         // Add all of the files in the staging folder to the commit
         // If there is no files in the staging folder, exit
         List<String> files = plainFilenamesIn(STAGE_DIR);
-        if (files.isEmpty()) {
+        if (files.isEmpty() && REMOVE_LIST.isEmpty()) {
             message("No changes added to the commit.");
             System.exit(0);
+        }
+        // Remove the file in the staging area for removal
+        for (String removeFile : REMOVE_LIST) {
+            commit.remove(removeFile);
         }
         List<String> filesInObjects = plainFilenamesIn(OBJECTS_DIR);
         String filehash;
@@ -173,12 +181,14 @@ public class Repository {
         if (files.contains(filename)) {
             join(STAGE_DIR, filename).delete();
         } else if (HEAD_COMMIT.contains(filename)) {
+            REMOVE_LIST.add(filename);
             if (join(CWD, filename).exists()) {
-                // TODO:
+                restrictedDelete(filename);
             }
         } else {
             message("No reason to remove the file.");
             System.exit(0);
         }
+        save();
     }
 }
