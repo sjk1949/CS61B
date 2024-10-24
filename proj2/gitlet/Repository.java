@@ -50,7 +50,7 @@ public class Repository {
     /** SHA-1 id of the current commit. Use only after load(). Use save() to preserve */
     private static String HEAD;
     /** The current commit. Use only after load() */
-    private static Commit HEAD_COMMIT;
+    private static transient Commit HEAD_COMMIT;
 
     private static HashSet<String> REMOVE_LIST;
 
@@ -108,6 +108,7 @@ public class Repository {
      * Save the file to the .gitlet/stage folder.
      * Check the current commit, if there is already an identical file, delete it.
      * If the file is not exist, exit.
+     * If the file is added to the remove_list, remove it from the list.
      * @param filename the name of the file being added
      */
     public static void add(String filename) {
@@ -118,6 +119,7 @@ public class Repository {
             System.exit(0);
         }
         String filehash = sha1(filename, readContents(file)); // Use both the filename and contents to make sure they are identical
+        REMOVE_LIST.remove(filename); // The case that the file is going to rm
         if (filehash.equals(HEAD_COMMIT.gethash(filename))) { // The situation that curr commit have similar file
             File stagedFile = join(STAGE_DIR, filename);
             if (stagedFile.exists()) {
@@ -126,13 +128,14 @@ public class Repository {
         } else {
             File stageFile = join(STAGE_DIR, filename);
             byte[] content = readContents(file);
-            writeContents(stageFile, content);
+            writeContents(stageFile, (Object)content);
         }
+        save();
     }
 
     /**
      * Create a commit which keep versions of files and update the staged file.
-     * After that, HEAD pointer will point to it and remove all of the files in staging area.
+     * After that, HEAD pointer will point to it and remove all of the files in staging area and in remove_list.
      * @param message the commit message
      */
     public static void commit(String message) {
@@ -150,10 +153,11 @@ public class Repository {
             message("No changes added to the commit.");
             System.exit(0);
         }
-        // Remove the file in the staging area for removal
+        // Remove the file in the remove_list. After done, clear the remove_list
         for (String removeFile : REMOVE_LIST) {
             commit.remove(removeFile);
         }
+        REMOVE_LIST.clear();
         List<String> filesInObjects = plainFilenamesIn(OBJECTS_DIR);
         String filehash;
         for (String filename : files) {
@@ -190,5 +194,17 @@ public class Repository {
             System.exit(0);
         }
         save();
+    }
+
+    /**
+     * Print the commit tree until the initial commit.
+     * TODO: merge commit
+     */
+    public static void log() {
+        load();
+        Commit commit;
+        for (commit = HEAD_COMMIT; commit != null; commit = commit.getParent()) {
+            System.out.printf(commit.toString());
+        }
     }
 }

@@ -4,10 +4,7 @@ package gitlet;
 
 import java.io.File;
 import java.io.Serializable;
-import java.util.Date; // TODO: You'll likely use this in this class
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 import static gitlet.Repository.*;
 import static gitlet.Utils.*;
@@ -32,8 +29,10 @@ public class Commit implements Serializable {
     /** The time when the Commit is initialized. */
     private Date timestamp;
 
-    /** The parent of this Commit. */
-    private Commit parent;
+    /** The SHA-1 id of the parent of this Commit. */
+    private String parentHash;
+    /** The parent of this Commit. Careful reload the parent when read Commit from file. */
+    private transient Commit parent;
     /** The map of hash code and filename of the files contain in this Commit. */
     private Map<String, String> fileMap;
 
@@ -71,16 +70,26 @@ public class Commit implements Serializable {
     }
 
     /**
-     * Reload a saved Commit from file.
+     * Reload a saved Commit from file. If input is null, return null
      * @param filename the SHA-1 id of the Commit
      */
     public static Commit fromFile(String filename) {
+        if (filename == null) {
+            return null;
+        }
         File commitFile = join(COMMITS_DIR, filename);
         return readObject(commitFile, Commit.class);
     }
 
     public void setParent(Commit parent) {
         this.parent = parent;
+        this.parentHash = sha1((Object) serialize(parent));
+    }
+
+    /** The safe way to get the parent commit */
+    public Commit getParent() {
+        this.parent = fromFile(this.parentHash);
+        return this.parent;
     }
 
     public void copyFileMap(Commit commit) {
@@ -112,5 +121,15 @@ public class Commit implements Serializable {
 
     public void remove(String filename) {
         this.fileMap.remove(filename);
+    }
+
+    public String toString() {
+        Formatter formatter = new Formatter(Locale.US);
+        String result = "===\n" +
+                "commit " + sha1(serialize(this)) + "\n" +
+                formatter.format("Date: %1$ta %1$tb %1$td %1$tT %1$tY %1$tz", this.timestamp) + "\n" +
+                message + "\n" +
+                "\n";
+        return result;
     }
 }
