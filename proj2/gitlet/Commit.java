@@ -25,30 +25,31 @@ public class Commit implements Serializable {
      */
 
     /** The message of this Commit. */
-    private String message;
+    private final String message;
     /** The time when the Commit is initialized. */
-    private Date timestamp;
+    private final Date timestamp;
 
     /** The SHA-1 id of the parent of this Commit. */
     private String parentHash;
     /** The parent of this Commit. Careful reload the parent when read Commit from file. */
     private transient Commit parent;
-    /** The map of hash code and filename of the files contain in this Commit. */
-    private Map<String, String> fileMap;
+    /** The map of hash code and filename of the files contain in this Commit.
+     *  MUST be a TreeMap because hashMap will cause random result in serialize! */
+    private TreeMap<String, String> fileMap;
 
     /* TODO: fill in the rest of this class. */
     /** A Commit object which use the local time as timestamp. */
     public Commit(String message) {
         this.message = message;
         this.timestamp = new Date();
-        this.fileMap = new HashMap<>();
+        this.fileMap = new TreeMap<>();
     }
 
     /** A Commit object which use the given timestamp. */
     public Commit(String message, Date time) {
         this.message = message;
         this.timestamp = time;
-        this.fileMap = new HashMap<>();
+        this.fileMap = new TreeMap<>();
     }
 
     /** A Commit object which set parent and copy its parent's fileList. */
@@ -63,7 +64,7 @@ public class Commit implements Serializable {
      * @return the SHA-1 id of the Commit
      * */
     public String saveCommit() {
-        String commitHash = sha1(serialize(this));
+        String commitHash = this.getHash();
         File commitFile = join(COMMITS_DIR, commitHash);
         writeObject(commitFile, this);
         return commitHash;
@@ -83,17 +84,19 @@ public class Commit implements Serializable {
 
     public void setParent(Commit parent) {
         this.parent = parent;
-        this.parentHash = sha1((Object) serialize(parent));
+        this.parentHash = this.parent.getHash();
     }
 
     /** The safe way to get the parent commit */
     public Commit getParent() {
-        this.parent = fromFile(this.parentHash);
+        if (this.parent == null) {
+            this.parent = fromFile(this.parentHash);
+        }
         return this.parent;
     }
 
     public void copyFileMap(Commit commit) {
-        this.fileMap = new HashMap<>();
+        this.fileMap = new TreeMap<>();
         this.fileMap.putAll(commit.fileMap);
     }
 
@@ -110,26 +113,44 @@ public class Commit implements Serializable {
     }
 
     /** Return the SHA-id of the given filename */
-    public String gethash(String filename) {
+    public String getFileHash(String filename) {
         return this.fileMap.get(filename);
     }
 
     /** Return whether the file of this filename exists in this Commit */
-    public boolean contains(String filename) {
+    public boolean containsFile(String filename) {
         return this.fileMap.containsKey(filename);
     }
 
-    public void remove(String filename) {
+    public void removeFile(String filename) {
         this.fileMap.remove(filename);
     }
 
+    public String getMessage() {
+        return this.message;
+    }
+
+    /**
+     * @return The SHA-1 id of this commit.
+     */
+    public String getHash() {
+        return sha1(this.message, serialize(this.timestamp), serialize(this.fileMap));
+    }
+
+    /**
+     * Print the Commit in the following style:
+     * ===
+     * commit [commit SHA-1 id]
+     * Date: [date]
+     * [message]
+     *
+     */
     public String toString() {
         Formatter formatter = new Formatter(Locale.US);
-        String result = "===\n" +
-                "commit " + sha1(serialize(this)) + "\n" +
+        return "===\n" +
+                "commit " + this.getHash() + "\n" +
                 formatter.format("Date: %1$ta %1$tb %1$td %1$tT %1$tY %1$tz", this.timestamp) + "\n" +
                 message + "\n" +
                 "\n";
-        return result;
     }
 }

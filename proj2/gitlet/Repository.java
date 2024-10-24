@@ -5,6 +5,7 @@ import java.io.IOException;
 import java.util.*;
 
 import static gitlet.Utils.*;
+import static gitlet.Utils.plainFilenamesIn;
 
 // TODO: any imports you need here
 
@@ -120,7 +121,7 @@ public class Repository {
         }
         String filehash = sha1(filename, readContents(file)); // Use both the filename and contents to make sure they are identical
         REMOVE_LIST.remove(filename); // The case that the file is going to rm
-        if (filehash.equals(HEAD_COMMIT.gethash(filename))) { // The situation that curr commit have similar file
+        if (filehash.equals(HEAD_COMMIT.getFileHash(filename))) { // The situation that curr commit have similar file
             File stagedFile = join(STAGE_DIR, filename);
             if (stagedFile.exists()) {
                 stagedFile.delete();
@@ -148,20 +149,19 @@ public class Repository {
         Commit commit = new Commit(message, currCommit);
         // Add all of the files in the staging folder to the commit
         // If there is no files in the staging folder, exit
-        List<String> files = plainFilenamesIn(STAGE_DIR);
+        List<File> files = getFilesFrom(STAGE_DIR);
         if (files.isEmpty() && REMOVE_LIST.isEmpty()) {
             message("No changes added to the commit.");
             System.exit(0);
         }
         // Remove the file in the remove_list. After done, clear the remove_list
         for (String removeFile : REMOVE_LIST) {
-            commit.remove(removeFile);
+            commit.removeFile(removeFile);
         }
         REMOVE_LIST.clear();
         List<String> filesInObjects = plainFilenamesIn(OBJECTS_DIR);
         String filehash;
-        for (String filename : files) {
-            File file = join(STAGE_DIR, filename);
+        for (File file : files) {
             filehash = commit.updateFile(file);
             // If this file is not exist, add it to the objects. We consider the SHA-1 id is unique.
             if (!filesInObjects.contains(filehash)) {
@@ -184,7 +184,7 @@ public class Repository {
         List<String> files = plainFilenamesIn(STAGE_DIR);
         if (files.contains(filename)) {
             join(STAGE_DIR, filename).delete();
-        } else if (HEAD_COMMIT.contains(filename)) {
+        } else if (HEAD_COMMIT.containsFile(filename)) {
             REMOVE_LIST.add(filename);
             if (join(CWD, filename).exists()) {
                 restrictedDelete(filename);
@@ -197,7 +197,7 @@ public class Repository {
     }
 
     /**
-     * Print the commit tree until the initial commit.
+     * Print the commit tree until the initial commit. Begin at HEAD_COMMIT
      * TODO: merge commit
      */
     public static void log() {
@@ -206,5 +206,44 @@ public class Repository {
         for (commit = HEAD_COMMIT; commit != null; commit = commit.getParent()) {
             System.out.printf(commit.toString());
         }
+    }
+
+    /**
+     * Print all of the commits ever made ignoring their order.
+     */
+    public static void logGlobal() {
+        load();
+        List<String> commitsHash = plainFilenamesIn(COMMITS_DIR);
+        for (String commithash : commitsHash) {
+            Commit commit = Commit.fromFile(commithash);
+            System.out.printf(commit.toString());
+        }
+    }
+
+    public static void find(String message) {
+        load();
+        boolean hasCommit = false;
+        List<String> commitsHash = plainFilenamesIn(COMMITS_DIR);
+        for (String commithash : commitsHash) {
+            Commit commit = Commit.fromFile(commithash);
+            if (commit.getMessage().equals(message)) {
+                hasCommit = true;
+                System.out.println(commit.getHash());
+            }
+        }
+        if (!hasCommit) {
+            message("Found no commit with that message.");
+            System.exit(0);
+        }
+    }
+
+    /** Return a list of files in the given directory. */
+    private static List<File> getFilesFrom(File dir) {
+        List<File> fileList = new ArrayList<>();
+        List<String> filenames = plainFilenamesIn(dir);
+        for (String filename : filenames) {
+            fileList.add(join(dir, filename));
+        }
+        return fileList;
     }
 }
