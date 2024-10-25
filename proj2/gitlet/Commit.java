@@ -138,6 +138,20 @@ public class Commit implements Serializable {
     }
 
     /**
+     * Return the file in the Object folder of the given filename.
+     */
+    public File getFile(String filename) {
+        return join(OBJECTS_DIR, this.getFileHash(filename));
+    }
+
+    /**
+     * Return the filename set of the Commit
+     */
+    public Set<String> getFileNames() {
+        return this.fileMap.keySet();
+    }
+
+    /**
      * Print the Commit in the following style:
      * ===
      * commit [commit SHA-1 id]
@@ -152,5 +166,24 @@ public class Commit implements Serializable {
                 formatter.format("Date: %1$ta %1$tb %1$td %1$tT %1$tY %1$tz", this.timestamp) + "\n" +
                 message + "\n" +
                 "\n";
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        if (this == obj) {
+            return true;
+        }
+        if (obj == null) {
+            return false;
+        }
+        if (obj instanceof Commit) {
+            return ((Commit) obj).getHash().equals(this.getHash());
+        }
+        return false;
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(this.getHash());
     }
 }

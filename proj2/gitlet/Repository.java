@@ -6,6 +6,7 @@ import java.util.*;
 
 import static gitlet.Utils.*;
 import static gitlet.Utils.plainFilenamesIn;
+import static gitlet.myUtils.*;
 
 // TODO: any imports you need here
 
@@ -17,6 +18,7 @@ import static gitlet.Utils.plainFilenamesIn;
  *      - commits/ -- folder containing all commits that saved
  *      - stage/ -- folder containing all of the staging file through add command
  *      - objects/ -- folder containing each unique version of the file added through the commit command
+ *      - heads/ -- folder containing the heads of branches
  *      - HEAD -- file containing the current HEAD commit hash
  *      - REMOVE -- file contains a list of files to be removed in the next commit
  *  TODO: It's a good idea to give a description here of what else this Class
@@ -43,17 +45,22 @@ public class Repository {
     public static final File STAGE_DIR = join(GITLET_DIR, "stage");
     /** The .gitlet/objects directory. */
     public static final File OBJECTS_DIR = join(GITLET_DIR, "objects");
+    /** The .gitlet/heads directory. */
+    public static final File HEADS_DIR = join(GITLET_DIR, "heads");
     /** The HEAD file */
     public static final File HEAD_FILE = join(GITLET_DIR, "HEAD");
     /** The REMOVE file */
     public static final File REMOVE_FILE = join(GITLET_DIR, "REMOVE");
 
-    /** SHA-1 id of the current commit. Use only after load(). Use save() to preserve */
+    /** Normally, HEAD will be a dir to a branch head, If it's a detached HEAD, it'll contain SHA-1 id of the current commit. Use save() to preserve */
     private static String HEAD;
-    /** The current commit. Use only after load() */
+    /** The current commit. */
     private static transient Commit HEAD_COMMIT;
 
-    private static HashSet<String> REMOVE_LIST;
+    /** The name of the current branch */
+    private static String BRANCH;
+
+    private static TreeSet<String> REMOVE_LIST;
 
     /* TODO: fill in the rest of this class. */
 
@@ -62,14 +69,14 @@ public class Repository {
      */
     public static void init() {
         if (GITLET_DIR.exists()) {
-            Utils.message("A Gitlet version-control system already exists in the current directory.");
-            System.exit(0);
+            exitWithError("A Gitlet version-control system already exists in the current directory.");
         }
         // Init the repository
         GITLET_DIR.mkdir();
         COMMITS_DIR.mkdir();
         STAGE_DIR.mkdir();
         OBJECTS_DIR.mkdir();
+        HEADS_DIR.mkdir();
         try{
             HEAD_FILE.createNewFile();
             REMOVE_FILE.createNewFile();
@@ -78,8 +85,9 @@ public class Repository {
         }
         // Create the first Commit
         Commit initCommit = new Commit("initial commit", new Date(0));
-        HEAD = initCommit.saveCommit();
-        REMOVE_LIST = new HashSet<>();
+        updateBranch("master", initCommit.saveCommit());
+        setHEADusingBranch("master");
+        REMOVE_LIST = new TreeSet<>();
         save();
     }
 
@@ -88,21 +96,18 @@ public class Repository {
      */
     public static void load() {
         if (!GITLET_DIR.exists()) { // Check if in a gitlet repo
-            Utils.message("Not in an initialized Gitlet directory.");
+            exitWithError("Not in an initialized Gitlet directory.");
             // return; can't use in this place or the code will keep running
-            System.exit(0);
         }
-        HEAD = readContentsAsString(HEAD_FILE);
-        HEAD_COMMIT = Commit.fromFile(HEAD);
-        REMOVE_LIST = readObject(REMOVE_FILE, HashSet.class);
+        // TODO:
     }
 
     /**
      * This method is going to save the variables to files to set up persistence.
      */
     public static void save() {
-        writeContents(HEAD_FILE, HEAD);
-        writeObject(REMOVE_FILE, REMOVE_LIST);
+        writeContents(HEAD_FILE, getHEAD());
+        writeObject(REMOVE_FILE, getRemoveList());
     }
 
     /**
@@ -116,12 +121,11 @@ public class Repository {
         load();
         File file = join(CWD, filename);
         if (!file.exists()) {
-            message("File does not exist.");
-            System.exit(0);
+            exitWithError("File does not exist.");
         }
         String filehash = sha1(filename, readContents(file)); // Use both the filename and contents to make sure they are identical
-        REMOVE_LIST.remove(filename); // The case that the file is going to rm
-        if (filehash.equals(HEAD_COMMIT.getFileHash(filename))) { // The situation that curr commit have similar file
+        getRemoveList().remove(filename); // The case that the file is going to rm
+        if (filehash.equals(getHeadCommit().getFileHash(filename))) { // The situation that curr commit have similar file
             File stagedFile = join(STAGE_DIR, filename);
             if (stagedFile.exists()) {
                 stagedFile.delete();
@@ -141,24 +145,21 @@ public class Repository {
      */
     public static void commit(String message) {
         load();
-        Commit currCommit = Commit.fromFile(HEAD);
+        Commit currCommit = Commit.fromFile(getHEAD());
         if (message.isEmpty()) {
-            message("Please enter a commit message.");
-            System.exit(0);
+            exitWithError("Please enter a commit message.");
         }
         Commit commit = new Commit(message, currCommit);
         // Add all of the files in the staging folder to the commit
         // If there is no files in the staging folder, exit
-        List<File> files = getFilesFrom(STAGE_DIR);
-        if (files.isEmpty() && REMOVE_LIST.isEmpty()) {
-            message("No changes added to the commit.");
-            System.exit(0);
+        Set<File> files = getFilesFrom(STAGE_DIR);
+        if (files.isEmpty() && getRemoveList().isEmpty()) {
+            exitWithError("No changes added to the commit.");
         }
         // Remove the file in the remove_list. After done, clear the remove_list
-        for (String removeFile : REMOVE_LIST) {
+        for (String removeFile : getRemoveList()) {
             commit.removeFile(removeFile);
         }
-        REMOVE_LIST.clear();
         List<String> filesInObjects = plainFilenamesIn(OBJECTS_DIR);
         String filehash;
         for (File file : files) {
@@ -168,9 +169,9 @@ public class Repository {
                 File fileInObjects = join(OBJECTS_DIR, filehash);
                 writeContents(fileInObjects, readContents(file));
             }
-            file.delete(); // Remove all of the files in the staging area
         }
-        HEAD = commit.saveCommit();
+        clearStagingArea();
+        updateBranch(getBRANCH(), commit.saveCommit());
         save();
     }
 
@@ -184,14 +185,13 @@ public class Repository {
         List<String> files = plainFilenamesIn(STAGE_DIR);
         if (files.contains(filename)) {
             join(STAGE_DIR, filename).delete();
-        } else if (HEAD_COMMIT.containsFile(filename)) {
-            REMOVE_LIST.add(filename);
+        } else if (getHeadCommit().containsFile(filename)) {
+            getRemoveList().add(filename);
             if (join(CWD, filename).exists()) {
                 restrictedDelete(filename);
             }
         } else {
-            message("No reason to remove the file.");
-            System.exit(0);
+            exitWithError("No reason to remove the file.");
         }
         save();
     }
@@ -203,7 +203,7 @@ public class Repository {
     public static void log() {
         load();
         Commit commit;
-        for (commit = HEAD_COMMIT; commit != null; commit = commit.getParent()) {
+        for (commit = getHeadCommit(); commit != null; commit = commit.getParent()) {
             System.out.printf(commit.toString());
         }
     }
@@ -220,6 +220,7 @@ public class Repository {
         }
     }
 
+    /** Find the commits with the given message */
     public static void find(String message) {
         load();
         boolean hasCommit = false;
@@ -232,18 +233,190 @@ public class Repository {
             }
         }
         if (!hasCommit) {
-            message("Found no commit with that message.");
-            System.exit(0);
+            exitWithError("Found no commit with that message.");
         }
     }
 
+    /** Display the branches, staged files, removed files , modifications not staged and untracked files. */
+    public static void status() {
+        printStatus();
+    }
+
+    /**
+     * Replace the file using the file from the head commit with the same name
+     * @param filename the file that is going to repalced
+     */
+    public static void checkout(String filename) {
+        load();
+        checkout(getHeadCommit(), filename);
+    }
+
+    /** Replace the file using the file from the given commit with the same name */
+    public static void checkout(String commithash, String filename) {
+        load();
+        Commit commit = Commit.fromFile(commithash);
+        if (commit == null) {
+            exitWithError("No commit with that id exists.");
+        }
+        checkout(commit, filename);
+    }
+
+    /** Change current branch to the given branch */
+    public static void checkoutBranch(String branchname) {
+        load();
+        Commit commit = getBranchHeadCommit(branchname);
+        Commit currCommit = getHeadCommit();
+        if (commit.equals(currCommit)) {
+            exitWithError("No need to checkout the current branch.");
+        }
+        Set<String> currFilenames = currCommit.getFileNames();
+        // Check if there is a untracked file before changes the working dir
+        List<String> workingFiles = plainFilenamesIn(CWD);
+        for (String workingFile : workingFiles) {
+            if (!currCommit.containsFile(workingFile)) {
+                exitWithError("There is an untracked file in the way; delete it, or add and commit it first.");
+            }
+        }
+        clearCWD();// Delete all of the files tracked in the currCommit
+        clearStagingArea();
+        Set<String> filenames = commit.getFileNames();
+        for (String filename : filenames) {
+            checkout(commit, filename);
+        }
+        setHEADusingBranch(branchname);
+        save();
+    }
+
+    /** Replace the file using the file from the given commit with the same name */
+    private static void checkout(Commit commit, String filename) {
+        if (!commit.containsFile(filename)) {
+            exitWithError("File does not exist in that commit.");
+        }
+        File currFile = join(CWD, filename);
+        File newFile = commit.getFile(filename);
+        writeContents(currFile, readContents(newFile)); // Overwrite the old file
+    }
+
+    private static void printStatus() {
+        List<String> branchs = plainFilenamesIn(HEADS_DIR);
+        List<String> stagedFiles = plainFilenamesIn(STAGE_DIR);
+        System.out.println("=== Branches ===");
+        for (String branch : branchs) {
+            if (branch.equals(getBRANCH())) {
+                System.out.print('*');
+            }
+            System.out.println(branch);
+        }
+        System.out.println("\n=== Staged Files ===");
+        for (String stagedFile : stagedFiles) {
+            System.out.println(stagedFile);
+        }
+        System.out.println("\n=== Removed Files ===");
+        for (String removedFile : getRemoveList()) {
+            System.out.println(removedFile);
+        }
+        System.out.println("\n=== Modifications Not Staged For Commit ===");
+        System.out.println("\n=== Untracked Files ===");
+        System.out.println();
+    }
+
     /** Return a list of files in the given directory. */
-    private static List<File> getFilesFrom(File dir) {
-        List<File> fileList = new ArrayList<>();
+    private static Set<File> getFilesFrom(File dir) {
+        Set<File> fileList = new TreeSet<>();
         List<String> filenames = plainFilenamesIn(dir);
         for (String filename : filenames) {
             fileList.add(join(dir, filename));
         }
         return fileList;
+    }
+
+    /** Set the branch to the given name */
+    private static void setHEADusingBranch(String branchname) {
+        HEAD = "branch:" + branchname;
+    }
+
+    /** Get the current branch if there is one, if not, return null */
+    private static String getBRANCH() {
+        if (BRANCH == null) {
+            String headContent = getHEAD();
+            if (headContent.startsWith("branch:")) {
+                BRANCH = headContent.substring("branch:".length());
+            }
+        }
+        return BRANCH;
+    }
+
+    /** Update the branch using the given commit SHA-1 id */
+    private static void updateBranch(String branchname, String commithash) {
+        File branchFile = getBranchFile(branchname);
+        writeContents(branchFile, commithash);
+    }
+
+
+    /** get the Commit SHA-1 id inside the branch file */
+    public static String getBranchHead(String branchname) {
+        File branchFile = getBranchFile(branchname);
+        if (!branchFile.exists()) {
+            exitWithError("No such branch exists.");
+        }
+        return readContentsAsString(branchFile);
+    }
+
+    /** get the head Commit of the given branch, if not found, exit with error */
+    public static Commit getBranchHeadCommit(String branchname) {
+        return Commit.fromFile(getBranchHead(branchname));
+    }
+
+    /** get branch file */
+    private static File getBranchFile(String branchname) {
+        return join(HEADS_DIR, branchname);
+    }
+
+    /** clear the staging area */
+    private static void clearStagingArea() {
+        clear(STAGE_DIR);
+        getRemoveList().clear();
+    }
+
+    /** clear the working directory */
+    private static void clearCWD() {
+        clear(CWD);
+    }
+
+    /** clear the given directory */
+    private static void clear(File dir) {
+        Set<File> files = getFilesFrom(dir);
+        for (File file : files) {
+            file.delete(); // Remove all of the files in the dir
+        }
+    }
+
+    /** get HEAD_COMMIT SHA-1 id */
+    public static String getHEAD() {
+        if (HEAD == null) {
+            HEAD = readContentsAsString(HEAD_FILE);
+        }
+        return HEAD;
+    }
+
+    /** get HEAD_COMMIT */
+    public static Commit getHeadCommit() {
+        if (HEAD_COMMIT == null) {
+            String headContent = getHEAD();
+            if (headContent.startsWith("branch:")) {
+                HEAD_COMMIT = getBranchHeadCommit(getBRANCH());
+            } else {
+                HEAD_COMMIT = Commit.fromFile(getHEAD());
+            }
+        }
+        return HEAD_COMMIT;
+    }
+
+    /** get REMOVE_LIST */
+    public static TreeSet<String> getRemoveList() {
+        if (REMOVE_LIST == null) {
+            REMOVE_LIST = readObject(REMOVE_FILE, TreeSet.class);
+        }
+        return REMOVE_LIST;
     }
 }
