@@ -21,42 +21,46 @@ public class Main {
                 break;
             case "add":
                 validateNumArgs(args, 2);
-                Repository.add(args[1]);
+                Command.add(args[1]);
                 break;
             case "commit":
                 validateNumArgs(args, 2);
-                Repository.commit(args[1]);
+                Command.commit(args[1]);
                 break;
             case "rm":
                 validateNumArgs(args, 2);
-                Repository.rm(args[1]);
+                Command.rm(args[1]);
                 break;
             case "log":
                 validateNumArgs(args, 1);
-                Repository.log();
+                Command.log();
                 break;
             case "global-log":
                 validateNumArgs(args, 1);
-                Repository.logGlobal();
+                Command.logGlobal();
                 break;
             case "find":
                 validateNumArgs(args, 2);
-                Repository.find(args[1]);
+                Command.find(args[1]);
                 break;
             case "status":
                 validateNumArgs(args, 1);
-                Repository.status();
+                Command.status();
                 break;
             case "checkout":
                 if (args.length == 2) {//checkout [branch name]
-                    Repository.checkoutBranch(args[1]);
+                    Command.checkoutBranch(args[1]);
                 } else if (args.length == 3 && args[1].equals("--")) {//checkout -- [file name]
-                    Repository.checkout(args[2]);
+                    Command.checkout(args[2]);
                 } else if (args.length == 4 && args[2].equals("--")) {//checkout [commit id] -- [file name]
-                    Repository.checkout(args[1], args[3]);
+                    Command.checkout(args[1], args[3]);
                 } else {
                     myUtils.exitWithError("Incorrect operands.");
                 }
+                break;
+            case "branch":
+                validateNumArgs(args, 2);
+                Command.branch(args[1]);
                 break;
             // TODO: FILL THE REST IN
             default:
