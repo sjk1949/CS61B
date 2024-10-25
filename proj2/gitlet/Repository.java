@@ -55,6 +55,7 @@ public class Repository {
     /** Normally, HEAD will be a dir to a branch head, If it's a detached HEAD, it'll contain SHA-1 id of the current commit. Use save() to preserve */
     private static String HEAD;
     /** The current commit. */
+    private static String HEAD_COMMIT_HASH;
     private static transient Commit HEAD_COMMIT;
 
     /** The name of the current branch */
@@ -145,7 +146,7 @@ public class Repository {
      */
     public static void commit(String message) {
         load();
-        Commit currCommit = Commit.fromFile(getHEAD());
+        Commit currCommit = getHeadCommit();
         if (message.isEmpty()) {
             exitWithError("Please enter a commit message.");
         }
@@ -399,15 +400,23 @@ public class Repository {
         return HEAD;
     }
 
+    /** get HEAD_COMMIT hash */
+    public static  String getHeadCommitHash() {
+        if (HEAD_COMMIT_HASH == null) {
+            String headContent = getHEAD();
+            if (headContent.startsWith("branch:")) {
+                HEAD_COMMIT_HASH = getBranchHead(getBRANCH());
+            } else {
+                HEAD_COMMIT_HASH = getHEAD();
+            }
+        }
+        return HEAD_COMMIT_HASH;
+    }
+
     /** get HEAD_COMMIT */
     public static Commit getHeadCommit() {
         if (HEAD_COMMIT == null) {
-            String headContent = getHEAD();
-            if (headContent.startsWith("branch:")) {
-                HEAD_COMMIT = getBranchHeadCommit(getBRANCH());
-            } else {
-                HEAD_COMMIT = Commit.fromFile(getHEAD());
-            }
+            HEAD_COMMIT = Commit.fromFile(getHeadCommitHash());
         }
         return HEAD_COMMIT;
     }
