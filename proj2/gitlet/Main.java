@@ -62,6 +62,10 @@ public class Main {
                 validateNumArgs(args, 2);
                 Command.branch(args[1]);
                 break;
+            case "rm-branch":
+                validateNumArgs(args, 2);
+                Command.rmBranch(args[1]);
+                break;
             // TODO: FILL THE REST IN
             default:
                 myUtils.exitWithError("No command with that name exists.");

@@ -176,6 +176,16 @@ public class Repository {
         return join(HEADS_DIR, branchname);
     }
 
+    /** delete the branch with given name */
+    public static void removeBranch(String branchname) {
+        getBranchFile(branchname).delete();
+    }
+
+    /** get branch names */
+    public static List<String> getBranchNames() {
+        return plainFilenamesIn(HEADS_DIR);
+    }
+
     /** clear the staging area */
     public static void clearStagingArea() {
         clear(STAGE_DIR);

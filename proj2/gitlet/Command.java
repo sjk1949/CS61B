@@ -219,5 +219,25 @@ public class Command {
         writeContents(currFile, readContents(newFile)); // Overwrite the old file
     }
 
-    public static void branch(String branchname) {}
+    /**
+     * create a branch with the given name, if the name is used, exit with error.
+     * @param branchname The name of the new branch
+     */
+    public static void branch(String branchname) {
+        if (getBranchNames().contains(branchname)) {
+            exitWithError("A branch with that name already exists.");
+        }
+        // Point the branch at the current head commit
+        updateBranch(branchname, getHeadCommitHash());
+    }
+
+    public static void rmBranch(String branchname) {
+        if (!getBranchNames().contains(branchname)) {
+            exitWithError("A branch with that name does not exist.");
+        }
+        if (getBRANCH().equals(branchname)) {
+            exitWithError("Cannot remove the current branch.");
+        }
+        removeBranch(branchname);
+    }
 }
