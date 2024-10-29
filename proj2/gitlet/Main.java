@@ -17,7 +17,7 @@ public class Main {
         switch(firstArg) {
             case "init":
                 validateNumArgs(args, 1);
-                Repository.init();
+                Command.init();
                 break;
             case "add":
                 validateNumArgs(args, 2);
@@ -65,6 +65,10 @@ public class Main {
             case "rm-branch":
                 validateNumArgs(args, 2);
                 Command.rmBranch(args[1]);
+                break;
+            case "reset":
+                validateNumArgs(args, 2);
+                Command.reset(args[1]);
                 break;
             // TODO: FILL THE REST IN
             default:

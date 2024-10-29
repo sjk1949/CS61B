@@ -71,7 +71,7 @@ public class Commit implements Serializable {
     }
 
     /**
-     * Reload a saved Commit from file. If input is null, return null
+     * Reload a saved Commit from file. If input is null, return null. If file cannot find, return null.
      * @param filename the SHA-1 id of the Commit
      */
     public static Commit fromFile(String filename) {
@@ -79,6 +79,9 @@ public class Commit implements Serializable {
             return null;
         }
         File commitFile = join(COMMITS_DIR, filename);
+        if (!commitFile.exists()) {
+            return null;
+        }
         return readObject(commitFile, Commit.class);
     }
 

@@ -66,12 +66,9 @@ public class Repository {
     /* TODO: fill in the rest of this class. */
 
     /**
-     * init the repository in a folder without one. If already have one, print an error message.
+     * init the repository in a folder without one.
      */
     public static void init() {
-        if (GITLET_DIR.exists()) {
-            exitWithError("A Gitlet version-control system already exists in the current directory.");
-        }
         // Init the repository
         GITLET_DIR.mkdir();
         COMMITS_DIR.mkdir();
@@ -87,20 +84,14 @@ public class Repository {
         // Create the first Commit
         Commit initCommit = new Commit("initial commit", new Date(0));
         updateBranch("master", initCommit.saveCommit());
-        setHEADusingBranch("master");
+        setHEADtoBranch("master");
         REMOVE_LIST = new TreeSet<>();
         save();
     }
 
-    /**
-     * This method is going to load the variables back. Also check if there is a .gitlet folder.
-     */
-    public static void load() {
-        if (!GITLET_DIR.exists()) { // Check if in a gitlet repo
-            exitWithError("Not in an initialized Gitlet directory.");
-            // return; can't use in this place or the code will keep running
-        }
-        // TODO:
+    /** Check whether the repo is exist. */
+    public static boolean isRepo() {
+        return GITLET_DIR.exists();
     }
 
     /**
@@ -134,9 +125,16 @@ public class Repository {
         System.out.println();
     }
 
-    /** Set the branch to the given name */
-    public static void setHEADusingBranch(String branchname) {
+    /** Set the HEAD point to the given branch */
+    public static void setHEADtoBranch(String branchname) {
         HEAD = "branch:" + branchname;
+        HEAD_COMMIT = getBranchHeadCommit(branchname);
+    }
+
+    /** Set the HEAD point to the given commit(detached)*/
+    public static void setHEADtoCommit(String commithash) {
+        HEAD = commithash;
+        HEAD_COMMIT = Commit.fromFile(commithash);
     }
 
     /** Get the current branch if there is one, if not, return null */

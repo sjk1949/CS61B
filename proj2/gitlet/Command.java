@@ -17,7 +17,7 @@ public class Command {
      * This method is going to load the variables back. Also check if there is a .gitlet folder.
      */
     public static void load() {
-        if (!GITLET_DIR.exists()) { // Check if in a gitlet repo
+        if (!Repository.isRepo()) { // Check if in a gitlet repo
             exitWithError("Not in an initialized Gitlet directory.");
             // return; can't use in this place or the code will keep running
         }
@@ -28,8 +28,17 @@ public class Command {
      * This method is going to save the variables to files to set up persistence.
      */
     public static void save() {
-        writeContents(HEAD_FILE, getHEAD());
-        writeObject(REMOVE_FILE, getRemoveList());
+        Repository.save();
+    }
+
+    /**
+     * init the repository in a folder without one. If already have one, print an error message.
+     */
+    public static void init() {
+        if (Repository.isRepo()) {
+            exitWithError("A Gitlet version-control system already exists in the current directory.");
+        }
+        Repository.init();
     }
 
     /**
@@ -187,10 +196,27 @@ public class Command {
     public static void checkoutBranch(String branchname) {
         load();
         Commit commit = getBranchHeadCommit(branchname);
-        Commit currCommit = getHeadCommit();
-        if (commit.equals(currCommit)) {
+        if (getBRANCH().equals(branchname)) {
             exitWithError("No need to checkout the current branch.");
         }
+        checkout(commit);
+        setHEADtoBranch(branchname);
+        save();
+    }
+
+    /** Replace the file using the file from the given commit with the same name */
+    private static void checkout(Commit commit, String filename) {
+        if (!commit.containsFile(filename)) {
+            exitWithError("File does not exist in that commit.");
+        }
+        File currFile = join(CWD, filename);
+        File newFile = commit.getFile(filename);
+        writeContents(currFile, readContents(newFile)); // Overwrite the old file
+    }
+
+    /** Replace the working directory using the files from the given commit with the same name */
+    private static void checkout(Commit commit) {
+        Commit currCommit = getHeadCommit();
         Set<String> currFilenames = currCommit.getFileNames();
         // Check if there is a untracked file before changes the working dir
         List<String> workingFiles = plainFilenamesIn(CWD);
@@ -205,18 +231,6 @@ public class Command {
         for (String filename : filenames) {
             checkout(commit, filename);
         }
-        setHEADusingBranch(branchname);
-        save();
-    }
-
-    /** Replace the file using the file from the given commit with the same name */
-    private static void checkout(Commit commit, String filename) {
-        if (!commit.containsFile(filename)) {
-            exitWithError("File does not exist in that commit.");
-        }
-        File currFile = join(CWD, filename);
-        File newFile = commit.getFile(filename);
-        writeContents(currFile, readContents(newFile)); // Overwrite the old file
     }
 
     /**
@@ -239,5 +253,15 @@ public class Command {
             exitWithError("Cannot remove the current branch.");
         }
         removeBranch(branchname);
+    }
+
+    public static void reset(String commithash) {
+        load();
+        Commit commit = Commit.fromFile(commithash);
+        if (commit == null) {
+            exitWithError("No commit with that id exists.");
+        }
+        checkout(commit);
+        updateBranch(getBRANCH(), commithash);
     }
 }
