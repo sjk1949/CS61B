@@ -1,0 +1,35 @@
+inserts random Strings of length 10
+
+Random Speed Test
+number      ULLMap      MyHashMap   HashMap(sec)
+1000        0.00        0.00        0.00
+10000       0.16        0.01        0.00
+20000       0.60        0.01        0.00
+50000       null        0.03        0.01
+100000      null        0.07        0.02
+1000000     null        0.81        0.29
+10000000    null        9.93        3.39
+100000000   null        OutOfMemory OutOfMemory
+
+InOrder Speed Test
+number      ULLMap      MyHashMap   HashMap(sec)
+1000        0.01        0.00        0.00
+10000       0.22        0.01        0.00
+20000       0.74        0.02        0.01
+30000       1.83        0.02        0.01
+50000       null        0.04        0.02
+1000000     null        0.54        0.32
+10000000    null        5.68        2.08
+
+When would it be better to use a BSTMap/TreeMap instead of a HashMap?
+
+I think when we need the data to be keep in a certain order. For example, sometimes we want it to print out or use in a
+certain order.
+
+Bucket Speed Test
+num         AL      LL      TS      HS      PQ(sec)
+1000        0.00    0.00    0.00    0.00    0.00
+10000       0.01    0.01    0.01    0.01    0.01
+100000      0.05    0.06    0.08    0.09    0.09
+1000000     0.59    0.58    0.87    0.80    0.81
+10000000    6.50    6.72    11.63   10.38   12.45
