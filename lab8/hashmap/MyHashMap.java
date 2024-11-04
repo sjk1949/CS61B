@@ -5,6 +5,8 @@ import java.util.HashSet;
 import java.util.Iterator;
 import java.util.Set;
 
+import static java.lang.Math.abs;
+
 /**
  *  A hash table-backed Map implementation. Provides amortized constant time
  *  access to elements via get(), remove(), and put() in the best case.
@@ -112,7 +114,11 @@ public class MyHashMap<K, V> implements Map61B<K, V> {
      * @param tableSize the size of the table to create
      */
     private Collection<Node>[] createTable(int tableSize) {
-        return new Collection[tableSize];
+        Collection<Node>[] table = new Collection[tableSize];
+        for (int i = 0; i < table.length; i++) {
+            table[i] = createBucket();
+        }
+        return table;
     }
 
     // TODO: Implement the methods of the Map61B Interface below
@@ -152,9 +158,9 @@ public class MyHashMap<K, V> implements Map61B<K, V> {
             // if the size/tableSize is bigger than the loadFactor.
             if ((double) this.size / this.tableSize > this.loadFactor) {
                 this.expandTable(this.tableSize * 2);
-                Collection<Node> bucket = getBucketOfKey(key);
-                bucket.add(createNode(key, value));
             }
+            Collection<Node> bucket = getBucketOfKey(key);
+            bucket.add(createNode(key, value));
         } else {
             node.value = value;
         }
@@ -162,7 +168,13 @@ public class MyHashMap<K, V> implements Map61B<K, V> {
 
     @Override
     public Set<K> keySet() {
-        throw new UnsupportedOperationException();
+        Set<K> keySet = new HashSet<>();
+        for (Collection<Node> bucket : this.buckets) {
+            for (Node node : bucket) {
+                keySet.add(node.key);
+            }
+        }
+        return keySet;
     }
 
     @Override
@@ -182,16 +194,20 @@ public class MyHashMap<K, V> implements Map61B<K, V> {
 
     private class MyHashMapIterator implements Iterator<K> {
 
-        private MyHashMapIterator() {}
+        private final Iterator<K> hashSetIterator;
+
+        private MyHashMapIterator() {
+            this.hashSetIterator = keySet().iterator();
+        }
 
         @Override
         public boolean hasNext() {
-            throw new UnsupportedOperationException();
+            return this.hashSetIterator.hasNext();
         }
 
         @Override
         public K next() {
-            throw new UnsupportedOperationException();
+            return this.hashSetIterator.next();
         }
     }
 
@@ -204,13 +220,16 @@ public class MyHashMap<K, V> implements Map61B<K, V> {
      *  Be aware that the key may not exist yet. */
     private Collection<Node> getBucketOfKey(K key) {
         int hash = key.hashCode();
-        int index = hash % this.tableSize;
+        int index = abs(hash) % this.tableSize;
         return buckets[index];
     }
 
     /** try to get a certain node with given key in the given bucket.
-     *  if failed, return null. */
+     *  if bucket isn't exist or doesn't have the node, return null. */
     private Node getNodeInBucket(Collection<Node> bucket, K key) {
+        if (bucket == null) {
+            return null;
+        }
         for (Node node : bucket) {
             if (node.key.equals(key)) {
                 return node;
