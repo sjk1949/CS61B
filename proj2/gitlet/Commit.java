@@ -16,7 +16,7 @@ import static gitlet.Utils.*;
  *
  *  @author sjk1949
  */
-public class Commit implements Serializable {
+public class Commit implements Serializable, Comparable<Commit> {
     /**
      * TODO: add instance variables here.
      *
@@ -79,7 +79,7 @@ public class Commit implements Serializable {
 
     /**
      * Reload a saved Commit from file. If input is null, return null. If file cannot find, return null.
-     * @param filename the SHA-1 id of the Commit || the short id(6 digits) of the Commit
+     * @param filename the SHA-1 id of the Commit || the short id of the Commit
      *                 (Note that if there is collision, only the first commit will be provided.)
      */
     public static Commit fromFile(String filename) {
@@ -91,7 +91,7 @@ public class Commit implements Serializable {
         File commitFile = null;
         if (filename.length() == 40) {// if the given name is a normal hash id
             commitFile = join(commitFolder, filename);
-        } else if (filename.length() == 6) {// if the given name is a short hash id
+        } else if (filename.length() < 40) {// if the given name is a short hash id
             commitFile = join(commitFolder, extendShortId(filename));
         }
         if (commitFile == null || !commitFile.exists()) {
@@ -100,7 +100,7 @@ public class Commit implements Serializable {
         return readObject(commitFile, Commit.class);
     }
 
-    /** extend the shortName with 6 digits to the first full commit name that exits, if failed, return null. */
+    /** extend the shortName to the first full commit name that exits, if failed, return null. */
     private static String extendShortId(String shortName) {
         String head = shortName.substring(0, 2);
         File commitFolder = join(COMMITS_DIR, head);
@@ -219,5 +219,10 @@ public class Commit implements Serializable {
     @Override
     public int hashCode() {
         return Objects.hash(this.getHash());
+    }
+
+    @Override
+    public int compareTo(Commit commit) {
+        return this.hashCode() - commit.hashCode();
     }
 }

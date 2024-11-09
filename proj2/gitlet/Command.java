@@ -141,13 +141,9 @@ public class Command {
      */
     public static void logGlobal() {
         load();
-        Set<File> commitsFolders = getFilesAndFoldersFrom(COMMITS_DIR);
-        for (File commitsFolder : commitsFolders) {
-            List<String> commitsHash = plainFilenamesIn(commitsFolder);
-            for (String commithash : commitsHash) {
-                Commit commit = Commit.fromFile(commithash);
-                System.out.printf(commit.toString());
-            }
+        Set<Commit> commits = getCommits();
+        for (Commit commit : commits) {
+            System.out.printf(commit.toString());
         }
     }
 
@@ -155,9 +151,8 @@ public class Command {
     public static void find(String message) {
         load();
         boolean hasCommit = false;
-        List<String> commitsHash = plainFilenamesIn(COMMITS_DIR);
-        for (String commithash : commitsHash) {
-            Commit commit = Commit.fromFile(commithash);
+        Set<Commit> commits = getCommits();
+        for (Commit commit : commits) {
             if (commit.getMessage().equals(message)) {
                 hasCommit = true;
                 System.out.println(commit.getHash());

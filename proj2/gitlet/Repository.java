@@ -233,6 +233,19 @@ public class Repository {
         return HEAD_COMMIT;
     }
 
+    /** get all of the commits */
+    public static Set<Commit> getCommits() {
+        Set<Commit> commits = new TreeSet<>();
+        Set<File> commitsFolders = getFilesAndFoldersFrom(COMMITS_DIR);
+        for (File commitsFolder : commitsFolders) {
+            List<String> commitsHash = plainFilenamesIn(commitsFolder);
+            for (String commithash : commitsHash) {
+                commits.add(Commit.fromFile(commithash));
+            }
+        }
+        return commits;
+    }
+
     /** get REMOVE_LIST */
     public static TreeSet<String> getRemoveList() {
         if (REMOVE_LIST == null) {
