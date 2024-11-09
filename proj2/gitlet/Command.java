@@ -165,6 +165,7 @@ public class Command {
 
     /** Display the branches, staged files, removed files , modifications not staged and untracked files. */
     public static void status() {
+        load();
         printStatus();
     }
 
@@ -233,6 +234,7 @@ public class Command {
      * @param branchname The name of the new branch
      */
     public static void branch(String branchname) {
+        load();
         if (getBranchNames().contains(branchname)) {
             exitWithError("A branch with that name already exists.");
         }
@@ -242,6 +244,7 @@ public class Command {
 
     /** Delete the branch with the given name. */
     public static void rmBranch(String branchname) {
+        load();
         if (!getBranchNames().contains(branchname)) {
             exitWithError("A branch with that name does not exist.");
         }
@@ -264,6 +267,7 @@ public class Command {
 
     /** Merge files from the given branch to the current branch. */
     public static void merge(String branchName) {
+        load();
         //TODO:
     }
 }
