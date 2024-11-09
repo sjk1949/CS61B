@@ -7,7 +7,7 @@ import java.util.TreeSet;
 
 import static gitlet.Utils.*;
 
-public class myUtils {
+public class MyUtils {
 
     /** Print a error message and exit */
     public static void exitWithError(String msg) {
@@ -15,7 +15,7 @@ public class myUtils {
         System.exit(0);
     }
 
-    /** Return a list of files in the given directory. */
+    /** Return a list of files (ONLY files without folders) in the given directory. */
     public static Set<File> getFilesFrom(File dir) {
         Set<File> fileList = new TreeSet<>();
         List<String> filenames = plainFilenamesIn(dir);
@@ -23,5 +23,11 @@ public class myUtils {
             fileList.add(join(dir, filename));
         }
         return fileList;
+    }
+
+    /** Return a list of files and folders in the given directory. */
+    public static Set<File> getFilesAndFoldersFrom(File dir) {
+        File[] files = dir.listFiles();
+        return new TreeSet<>(List.of(files));
     }
 }

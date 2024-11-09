@@ -1,15 +1,12 @@
 package gitlet;
 
 import java.io.File;
-import java.io.IOException;
-import java.util.Date;
 import java.util.List;
 import java.util.Set;
-import java.util.TreeSet;
 
 import static gitlet.Repository.*;
 import static gitlet.Utils.*;
-import static gitlet.myUtils.*;
+import static gitlet.MyUtils.*;
 
 public class Command {
 
@@ -144,10 +141,13 @@ public class Command {
      */
     public static void logGlobal() {
         load();
-        List<String> commitsHash = plainFilenamesIn(COMMITS_DIR);
-        for (String commithash : commitsHash) {
-            Commit commit = Commit.fromFile(commithash);
-            System.out.printf(commit.toString());
+        Set<File> commitsFolders = getFilesAndFoldersFrom(COMMITS_DIR);
+        for (File commitsFolder : commitsFolders) {
+            List<String> commitsHash = plainFilenamesIn(commitsFolder);
+            for (String commithash : commitsHash) {
+                Commit commit = Commit.fromFile(commithash);
+                System.out.printf(commit.toString());
+            }
         }
     }
 

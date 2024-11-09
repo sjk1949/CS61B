@@ -65,7 +65,13 @@ public class Commit implements Serializable {
      * */
     public String saveCommit() {
         String commitHash = this.getHash();
-        File commitFile = join(COMMITS_DIR, commitHash);
+        // the first two digits of the hash is the commit's folder name.
+        String head = commitHash.substring(0, 2);
+        File commitFolder = join(COMMITS_DIR, head);
+        if (!commitFolder.exists()) {
+            commitFolder.mkdir();
+        }
+        File commitFile = join(commitFolder, commitHash);
         writeObject(commitFile, this);
         return commitHash;
     }
@@ -78,7 +84,9 @@ public class Commit implements Serializable {
         if (filename == null) {
             return null;
         }
-        File commitFile = join(COMMITS_DIR, filename);
+        String head = filename.substring(0, 2);
+        File commitFolder = join(COMMITS_DIR, head);
+        File commitFile = join(commitFolder, filename);
         if (!commitFile.exists()) {
             return null;
         }

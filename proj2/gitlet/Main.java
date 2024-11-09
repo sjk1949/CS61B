@@ -10,7 +10,7 @@ public class Main {
      */
     public static void main(String[] args) {
         if (args.length == 0) {
-            myUtils.exitWithError("Please enter a command.");
+            MyUtils.exitWithError("Please enter a command.");
         }
 
         String firstArg = args[0];
@@ -55,7 +55,7 @@ public class Main {
                 } else if (args.length == 4 && args[2].equals("--")) {//checkout [commit id] -- [file name]
                     Command.checkout(args[1], args[3]);
                 } else {
-                    myUtils.exitWithError("Incorrect operands.");
+                    MyUtils.exitWithError("Incorrect operands.");
                 }
                 break;
             case "branch":
@@ -72,7 +72,7 @@ public class Main {
                 break;
             // TODO: FILL THE REST IN
             default:
-                myUtils.exitWithError("No command with that name exists.");
+                MyUtils.exitWithError("No command with that name exists.");
         }
     }
 
@@ -83,7 +83,7 @@ public class Main {
      */
     public static void validateNumArgs(String[] args, int n) {
         if (args.length != n) {
-            myUtils.exitWithError("Incorrect operands.");
+            MyUtils.exitWithError("Incorrect operands.");
         }
     }
 }

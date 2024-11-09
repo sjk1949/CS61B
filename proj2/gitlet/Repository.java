@@ -6,7 +6,7 @@ import java.util.*;
 
 import static gitlet.Utils.*;
 import static gitlet.Utils.plainFilenamesIn;
-import static gitlet.myUtils.*;
+import static gitlet.MyUtils.*;
 
 // TODO: any imports you need here
 
@@ -16,6 +16,7 @@ import static gitlet.myUtils.*;
  *
  * .gitlet/ top level folder of all persistent data
  *      - commits/ -- folder containing all commits that saved
+ *          - a0/ -- folder containing all commits with the first 2 digits
  *      - stage/ -- folder containing all of the staging file through add command
  *      - objects/ -- folder containing each unique version of the file added through the commit command
  *      - heads/ -- folder containing the heads of branches
