@@ -6,6 +6,7 @@ import java.io.File;
 import java.io.Serializable;
 import java.util.*;
 
+import static gitlet.MyUtils.exitWithError;
 import static gitlet.Repository.*;
 import static gitlet.Utils.*;
 
@@ -78,7 +79,8 @@ public class Commit implements Serializable {
 
     /**
      * Reload a saved Commit from file. If input is null, return null. If file cannot find, return null.
-     * @param filename the SHA-1 id of the Commit
+     * @param filename the SHA-1 id of the Commit || the short id(6 digits) of the Commit
+     *                 (Note that if there is collision, only the first commit will be provided.)
      */
     public static Commit fromFile(String filename) {
         if (filename == null) {
@@ -86,11 +88,32 @@ public class Commit implements Serializable {
         }
         String head = filename.substring(0, 2);
         File commitFolder = join(COMMITS_DIR, head);
-        File commitFile = join(commitFolder, filename);
-        if (!commitFile.exists()) {
+        File commitFile = null;
+        if (filename.length() == 40) {// if the given name is a normal hash id
+            commitFile = join(commitFolder, filename);
+        } else if (filename.length() == 6) {// if the given name is a short hash id
+            commitFile = join(commitFolder, extendShortId(filename));
+        }
+        if (commitFile == null || !commitFile.exists()) {
             return null;
         }
         return readObject(commitFile, Commit.class);
+    }
+
+    /** extend the shortName with 6 digits to the first full commit name that exits, if failed, return null. */
+    private static String extendShortId(String shortName) {
+        String head = shortName.substring(0, 2);
+        File commitFolder = join(COMMITS_DIR, head);
+        if (!commitFolder.exists()) {
+            return null;
+        }
+        List<String> commitsHash = plainFilenamesIn(commitFolder);
+        for (String commitHash : commitsHash) {
+            if (commitHash.substring(0, 6).equals(shortName)) {
+                return commitHash;
+            }
+        }
+        return null;
     }
 
     public void setParent(Commit parent) {
