@@ -245,6 +245,7 @@ public class Command {
         updateBranch(branchname, getHeadCommitHash());
     }
 
+    /** Delete the branch with the given name. */
     public static void rmBranch(String branchname) {
         if (!getBranchNames().contains(branchname)) {
             exitWithError("A branch with that name does not exist.");
@@ -255,6 +256,7 @@ public class Command {
         removeBranch(branchname);
     }
 
+    /** Check out all files by the given commit, remove tracked files that are not present in the commit. */
     public static void reset(String commithash) {
         load();
         Commit commit = Commit.fromFile(commithash);
@@ -263,5 +265,10 @@ public class Command {
         }
         checkout(commit);
         updateBranch(getBRANCH(), commithash);
+    }
+
+    /** Merge files from the given branch to the current branch. */
+    public static void merge(String branchName) {
+        //TODO:
     }
 }

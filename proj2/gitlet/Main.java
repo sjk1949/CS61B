@@ -70,6 +70,10 @@ public class Main {
                 validateNumArgs(args, 2);
                 Command.reset(args[1]);
                 break;
+            case "merge":
+                validateNumArgs(args, 2);
+                Command.merge(args[1]);
+                break;
             // TODO: FILL THE REST IN
             default:
                 MyUtils.exitWithError("No command with that name exists.");
