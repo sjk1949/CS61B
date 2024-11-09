@@ -100,20 +100,20 @@ public class Commit implements Serializable, Comparable<Commit> {
         return readObject(commitFile, Commit.class);
     }
 
-    /** extend the shortName to the first full commit name that exits, if failed, return null. */
+    /** extend the shortName to the first full commit name that exits, if failed, return origin shortName. */
     private static String extendShortId(String shortName) {
         String head = shortName.substring(0, 2);
         File commitFolder = join(COMMITS_DIR, head);
         if (!commitFolder.exists()) {
-            return null;
+            return shortName;
         }
         List<String> commitsHash = plainFilenamesIn(commitFolder);
         for (String commitHash : commitsHash) {
-            if (commitHash.substring(0, 6).equals(shortName)) {
+            if (commitHash.startsWith(shortName)) {
                 return commitHash;
             }
         }
-        return null;
+        return shortName;
     }
 
     public void setParent(Commit parent) {
