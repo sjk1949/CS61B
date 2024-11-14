@@ -47,6 +47,28 @@ simply use that as the name of the file that the object is serialized to.
 
 ## Algorithms
 
+### merge
+Above is a table of the file state and it's dealing method in the merge command.
+A, B, C represent differnet versions of the file.
+
+| Split point | Given branch | Current branch | CWD | result                | givenBranchFlag | currBranchFlag |
+|-------------|--------------|----------------|-----|-----------------------|-----------------|----------------|
+| A           | B            | A              | -   | B(add)                | 1               | 0              |
+| A           | A            | B              | -   | B                     | 0               | 1              |
+| A           | B            | B              | -   | B                     | 1               | 1              |
+| A           | -            | -              | B   | -(remain in CWD)      | 1               | 1              |
+| -           | -            | A              | -   | A                     | 0               | 1              |
+| -           | A            | -              | -   | A(checkout & add)     | 1               | 0              |
+| -           | A            | A              | -   | A                     | 1               | 1              |
+| -           | A            | B              | -   | AB(replace content)   | 1               | 1              |
+| A           | -            | A              | -   | -(remove & untracked) | 1               | 0              |
+| A           | A            | -              | -   | -                     | 0               | 1              |
+| A           | B            | C              | -   | BC(replace content)   | 1               | 1              |
+
+1. find the Split point of the Given Branch and Current Branch
+2. find the version is changed or not in Given Branch, if true, set `givenBranchFlag = 1`
+3. find the version is changed or not in Current Branch, if true, set `currBranchFlag = 1`
+
 ## Persistence
 
 The directory structure looks like this:
@@ -57,9 +79,11 @@ CWD
  ├──────...
  └──────.gitlet
          ├──────commits
-         │       ├──────commit1(hash)
-         │       ├──────commit2
-         │       └──────commitn
+         │       ├──────a0
+         │       └──────a1
+         │              ├──────commit1(hash)
+         │              ├──────commit2
+         │              └──────commitn
          ├──────stage
          │       ├──────file1(hash)
          │       └──────file2
@@ -67,8 +91,10 @@ CWD
          │       ├──────file1(hash)
          │       └──────file2
          ├──────HEAD
-         ├──────
-         └──────...
+         ├──────heads
+         │       ├──────main
+         │       └──────branch1
+         └──────REMOVE
 ```
 
 The `Repository` will set up all persistence.

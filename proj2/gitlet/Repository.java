@@ -138,6 +138,12 @@ public class Repository {
         HEAD_COMMIT = Commit.fromFile(commithash);
     }
 
+    /** return whether the branch exist */
+    public static boolean containsBranch(String branchname) {
+        File branchFile = getBranchFile(branchname);
+        return branchFile.exists();
+    }
+
     /** Get the current branch if there is one, if not, return null */
     public static String getBRANCH() {
         if (BRANCH == null) {
@@ -183,6 +189,11 @@ public class Repository {
     /** get branch names */
     public static List<String> getBranchNames() {
         return plainFilenamesIn(HEADS_DIR);
+    }
+
+    /** check if the staging area is clear */
+    public static boolean isStagingAreaClear() {
+        return getRemoveList().isEmpty() && plainFilenamesIn(STAGE_DIR).isEmpty();
     }
 
     /** clear the staging area */

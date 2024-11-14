@@ -34,6 +34,10 @@ public class Commit implements Serializable, Comparable<Commit> {
     private String parentHash;
     /** The parent of this Commit. Careful reload the parent when read Commit from file. */
     private transient Commit parent;
+    /** The SHA-1 id of the second parent of this Commit when merge. */
+    private String parentMergedHash;
+    /** The second parent of this Commit when merge. Careful reload the parent when read Commit from file. */
+    private transient Commit parentMerged;
     /** The map of hash code and filename of the files contain in this Commit.
      *  MUST be a TreeMap because hashMap will cause random result in serialize! */
     private TreeMap<String, String> fileMap;
@@ -58,6 +62,15 @@ public class Commit implements Serializable, Comparable<Commit> {
         this.message = message;
         this.timestamp = new Date();
         this.setParent(parent);
+        this.copyFileMap(parent);
+    }
+
+    /** A Merge Commit object which set parent and second parent */
+    public Commit(String message, Commit parent, Commit parentMerged) {
+        this.message = message;
+        this.timestamp = new Date();
+        this.setParent(parent);
+        this.setParentMerged(parentMerged);
         this.copyFileMap(parent);
     }
 
@@ -121,12 +134,25 @@ public class Commit implements Serializable, Comparable<Commit> {
         this.parentHash = this.parent.getHash();
     }
 
+    public void setParentMerged(Commit parent) {
+        this.parentMerged = parent;
+        this.parentMergedHash = this.parentMerged.getHash();
+    }
+
     /** The safe way to get the parent commit */
     public Commit getParent() {
         if (this.parent == null) {
             this.parent = fromFile(this.parentHash);
         }
         return this.parent;
+    }
+
+    /** The safe way to get the second parent commit */
+    public Commit getParentMerged() {
+        if (this.parentMergedHash != null && this.parentMerged == null) {
+            this.parentMerged = fromFile(this.parentMergedHash);
+        }
+        return this.parentMerged;
     }
 
     public void copyFileMap(Commit commit) {
@@ -175,6 +201,9 @@ public class Commit implements Serializable, Comparable<Commit> {
      * Return the file in the Object folder of the given filename.
      */
     public File getFile(String filename) {
+        if (!this.containsFile(filename)) {
+            return null;
+        }
         return join(OBJECTS_DIR, this.getFileHash(filename));
     }
 

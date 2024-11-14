@@ -1,12 +1,15 @@
 package gitlet;
 
 import java.io.File;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 import static gitlet.Repository.*;
 import static gitlet.Utils.*;
 import static gitlet.MyUtils.*;
+import static gitlet.Utils.readContents;
 
 public class Command {
 
@@ -78,6 +81,36 @@ public class Command {
             exitWithError("Please enter a commit message.");
         }
         Commit commit = new Commit(message, currCommit);
+        // Add all of the files in the staging folder to the commit
+        // If there is no files in the staging folder, exit
+        Set<File> files = getFilesFrom(STAGE_DIR);
+        if (files.isEmpty() && getRemoveList().isEmpty()) {
+            exitWithError("No changes added to the commit.");
+        }
+        // Remove the file in the remove_list. After done, clear the remove_list
+        for (String removeFile : getRemoveList()) {
+            commit.removeFile(removeFile);
+        }
+        List<String> filesInObjects = plainFilenamesIn(OBJECTS_DIR);
+        String filehash;
+        for (File file : files) {
+            filehash = commit.updateFile(file);
+            // If this file is not exist, add it to the objects. We consider the SHA-1 id is unique.
+            if (!filesInObjects.contains(filehash)) {
+                File fileInObjects = join(OBJECTS_DIR, filehash);
+                writeContents(fileInObjects, readContents(file));
+            }
+        }
+        clearStagingArea();
+        updateBranch(getBRANCH(), commit.saveCommit());
+        save();
+    }
+
+    /** An auto commit generated when merge operation */
+    private static void commit(String currBranch, String givenBranch) {
+        String message="Merged " + givenBranch + " into " + currBranch + ".";
+        Commit currCommit = getHeadCommit();
+        Commit commit = new Commit(message, getBranchHeadCommit(currBranch), getBranchHeadCommit(givenBranch));
         // Add all of the files in the staging folder to the commit
         // If there is no files in the staging folder, exit
         Set<File> files = getFilesFrom(STAGE_DIR);
@@ -268,6 +301,145 @@ public class Command {
     /** Merge files from the given branch to the current branch. */
     public static void merge(String branchName) {
         load();
-        //TODO:
+        if (!isStagingAreaClear()) {
+            exitWithError("You have uncommitted changes.");
+        }
+        if (!containsBranch(branchName)) {
+            exitWithError("A branch with that name does not exist.");
+        } else if (getBRANCH().equals(branchName)) {
+            exitWithError("Cannot merge a branch with itself.");
+        }
+        Commit givenCommit = getBranchHeadCommit(branchName);
+        Commit currCommit = getHeadCommit();
+        Commit splitPointCommit = SplitPointFinder.findSplitPoint(givenCommit, currCommit);
+        if (splitPointCommit.equals(givenCommit)) {
+            exitWithError("Given branch is an ancestor of the current branch.");
+        } else if (splitPointCommit.equals(currCommit)) {
+            checkoutBranch(branchName);
+            exitWithError("Current branch fast-forwarded.");
+        }
+        List<String> workingFiles = plainFilenamesIn(CWD);
+        /**for (String workingFile : workingFiles) {
+            if (!currCommit.containsFile(workingFile)) {
+                if (givenCommit.containsFile(workingFile) && )
+                exitWithError("There is an untracked file in the way; delete it, or add and commit it first.");
+            }
+        }*/
+        mergeCommit(currCommit, givenCommit, splitPointCommit);
+        commit(getBRANCH(), branchName);
+    }
+
+    /** Merge files from the given branch to the current branch, must be sure that the inputs are exist. */
+    private static void mergeCommit(Commit currCommit, Commit givenCommit, Commit splitPoint) {
+        enum Status{ // five conditions in total, notice that A,B,C can be null
+            AAA, ABA, AAB, ABB, ABC
+        }
+        int splitHaveFlag = 0; // if split contains this file, return true
+        int givenBranchFlag = 1; // if file changes in givenBranch, return true
+        int currBranchFlag = 2; // if file changes in currBranch, return true
+        Map<String, boolean[]> filenames = new HashMap<>();
+        for (String filename : splitPoint.getFileNames()) {
+            filenames.put(filename, new boolean[]{true, true, true});
+        }
+        for (String filename : givenCommit.getFileNames()) {
+            if (!filenames.containsKey(filename)) {
+                if (currCommit.containsFile(filename)) {
+                    filenames.put(filename, new boolean[]{false, true, true});
+                } else {
+                    filenames.put(filename, new boolean[]{false, true, false});
+                }
+            } else {
+                if (splitPoint.getFileHash(filename).equals(givenCommit.getFileHash(filename))) {
+                    filenames.get(filename)[givenBranchFlag] = false;
+                }
+            }
+        }
+        for (String filename : currCommit.getFileNames()) {
+            if (currCommit.getFileHash(filename).equals(splitPoint.getFileHash(filename))) {
+                    filenames.get(filename)[currBranchFlag] = false;
+            }
+        }
+        // Complete the file status table and begin to select files to different situation
+        boolean isConflict = false;
+        for (Map.Entry<String, boolean[]> entry : filenames.entrySet()) {
+            Status status = null;
+            String filename = entry.getKey();
+            boolean[] flags = entry.getValue();
+            if (flags[givenBranchFlag]) {
+                if (flags[currBranchFlag]) {
+                    if (givenCommit.getFileHash(filename) == null) {
+                        if (currCommit.getFileHash(filename) == null) {
+                            status = Status.ABB;
+                        } else {
+                            status = Status.ABC;
+                        }
+                    } else {
+                        if (!givenCommit.getFileHash(filename).equals(currCommit.getFileHash(filename))) {
+                            status = Status.ABC;
+                        } else {
+                            status = Status.ABB;
+                        }
+                    }
+                } else {
+                    status = Status.ABA;
+                }
+            } else {
+                if (flags[currBranchFlag]) {
+                    status = Status.AAB;
+                } else {
+                    status = Status.AAA;
+                }
+            }
+
+            // Handle different status
+            switch (status) {
+                case AAA:
+                    break;
+                case AAB:
+                    break;
+                case ABA:
+                    if (!givenCommit.containsFile(filename)) {
+                        rm(filename);
+                    } else {
+                        checkout(givenCommit, filename);
+                        add(filename);
+                    }
+                    break;
+                case ABB:
+                    break;
+                case ABC:
+                    isConflict = true;
+                    File file = join(CWD, filename);
+                    File currFile = currCommit.getFile(filename);
+                    File givenFile = givenCommit.getFile(filename);
+                    byte[] currContent = (currFile == null) ? null : readContents(currFile);
+                    byte[] givenContent = (givenFile == null) ? null : readContents(givenFile);
+                    if (currFile == null) {
+                        writeContents(file, "<<<<<<< HEAD\n",
+                                "=======\n",
+                                givenContent,
+                                ">>>>>>>\n");
+                    } else if (givenFile == null) {
+                        writeContents(file, "<<<<<<< HEAD\n",
+                                currContent,
+                                "=======\n",
+                                ">>>>>>>\n");
+                    } else {
+                        writeContents(file, "<<<<<<< HEAD\n",
+                                currContent,
+                                "=======\n",
+                                givenContent,
+                                ">>>>>>>\n");
+                    }
+                    add(filename);
+                    break;
+                default:
+                    break;
+            }
+        }
+
+        if (isConflict) {
+            message("Encountered a merge conflict.");
+        }
     }
 }
