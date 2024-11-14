@@ -331,9 +331,6 @@ public class Command {
 
     /** Merge files from the given branch to the current branch, must be sure that the inputs are exist. */
     private static void mergeCommit(Commit currCommit, Commit givenCommit, Commit splitPoint) {
-        enum Status{ // five conditions in total, notice that A,B,C can be null
-            AAA, ABA, AAB, ABB, ABC
-        }
         int splitHaveFlag = 0; // if split contains this file, return true
         int givenBranchFlag = 1; // if file changes in givenBranch, return true
         int currBranchFlag = 2; // if file changes in currBranch, return true
@@ -441,5 +438,9 @@ public class Command {
         if (isConflict) {
             message("Encountered a merge conflict.");
         }
+    }
+
+    private enum Status{ // five conditions in total, notice that A,B,C can be null
+        AAA, ABA, AAB, ABB, ABC
     }
 }
