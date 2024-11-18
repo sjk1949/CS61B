@@ -7,6 +7,7 @@ import java.io.Serializable;
 import java.util.*;
 
 import static gitlet.MyUtils.exitWithError;
+import static gitlet.MyUtils.getFilesAndFoldersFrom;
 import static gitlet.Repository.*;
 import static gitlet.Utils.*;
 

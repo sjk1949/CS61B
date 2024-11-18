@@ -311,7 +311,8 @@ public class Command {
         }
         Commit givenCommit = getBranchHeadCommit(branchName);
         Commit currCommit = getHeadCommit();
-        Commit splitPointCommit = SplitPointFinder.findSplitPoint(givenCommit, currCommit);
+        SplitPointFinder splitPointFinder = new SplitPointFinder();
+        Commit splitPointCommit = splitPointFinder.findSplitPoint(currCommit, givenCommit);
         if (splitPointCommit.equals(givenCommit)) {
             exitWithError("Given branch is an ancestor of the current branch.");
         } else if (splitPointCommit.equals(currCommit)) {
