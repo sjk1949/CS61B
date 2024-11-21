@@ -3,11 +3,14 @@ package byow.Core;
 import byow.TileEngine.TETile;
 import byow.TileEngine.Tileset;
 
+import byow.Core.DrawTile;
+
 public class WorldGenerator {
 
     public static TETile[][] generate(WorldGenerationParameters mgp) {
         TETile[][] world = createEmptyWorld(mgp.width, mgp.height);
-        fillWithTile(world, Tileset.WALL);
+        fillWithTile(world, Tileset.GRASS);
+        DrawTile.drawLine(world, new Position(3,4), new Position(10,6), Tileset.WALL);
         return world;
     }
 
