@@ -1,5 +1,7 @@
 package byow.Core;
 
+import byow.Core.Generator.WorldGenerationParameters;
+import byow.Core.Generator.WorldGenerator;
 import byow.TileEngine.TERenderer;
 import byow.TileEngine.TETile;
 

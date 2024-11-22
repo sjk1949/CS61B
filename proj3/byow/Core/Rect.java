@@ -79,4 +79,8 @@ public class Rect {
     public int height() {
         return height;
     }
+
+    public boolean collideWith(Rect other) {
+        return left() <= other.right() && right() >= other.left() && down() <= other.up() && up() >= other.down();
+    }
 }

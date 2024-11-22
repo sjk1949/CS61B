@@ -1,4 +1,4 @@
-package byow.Core;
+package byow.Core.Generator;
 
 public class WorldGenerationParameters {
 

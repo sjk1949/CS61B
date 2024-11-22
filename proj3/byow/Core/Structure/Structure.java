@@ -27,6 +27,10 @@ public class Structure {
         return rect;
     }
 
+    public boolean collideWith(Structure other) {
+        return getRect().collideWith(other.getRect());
+    }
+
     public boolean contains(Position pos) {
         return rect.contains(pos);
     }
