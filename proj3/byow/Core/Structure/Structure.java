@@ -1,22 +1,24 @@
 package byow.Core.Structure;
 
+import byow.Core.DrawTile;
 import byow.Core.Position;
+import byow.Core.Rect;
 import byow.TileEngine.TETile;
 import byow.TileEngine.Tileset;
 
 public class Structure {
 
-    public Position position;
+    public Rect rect;
 
-    public Structure(Position position) {
-        this.position = position;
+    public Structure(Rect rect) {
+        this.rect = rect;
     }
 
     public boolean contains(Position pos) {
-        return pos.equals(position);
+        return rect.contains(pos);
     }
 
     public void drawOn(TETile[][] world) {
-        world[position.x][position.y] = Tileset.NOTHING;
+        DrawTile.drawRect(world, rect, Tileset.NOTHING);
     }
 }

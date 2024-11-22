@@ -10,7 +10,7 @@ public class WorldGenerator {
     public static TETile[][] generate(WorldGenerationParameters mgp) {
         TETile[][] world = createEmptyWorld(mgp.width, mgp.height);
         fillWithTile(world, Tileset.GRASS);
-        DrawTile.drawLine(world, new Position(3,4), new Position(3,4), Tileset.WALL);
+        DrawTile.drawLine(world, new Position(3,4), new Position(6,5), Tileset.WALL);
         return world;
     }
 

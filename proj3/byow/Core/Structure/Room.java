@@ -1,6 +1,7 @@
 package byow.Core.Structure;
 
 import byow.Core.Position;
+import byow.Core.Rect;
 import byow.TileEngine.TETile;
 
 public class Room extends Structure {
@@ -9,7 +10,7 @@ public class Room extends Structure {
     public int height;
 
     public Room(Position position, int width, int height) {
-        super(position);
+        super(new Rect(position, width, height));
         this.width = width;
         this.height = height;
     }

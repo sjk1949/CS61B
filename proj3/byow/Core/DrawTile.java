@@ -18,4 +18,12 @@ public class DrawTile {
         Line line = new Line(pos1, pos2);
         drawLine(tiles, line, tile);
     }
+
+    public static void drawRect(TETile[][] tiles, Rect rect, TETile tile) {
+        for (int x = rect.left(); x <= rect.right(); x++) {
+            for (int y = rect.down(); y <= rect.up(); y++) {
+                drawPoint(tiles, new Position(x, y), tile);
+            }
+        }
+    }
 }

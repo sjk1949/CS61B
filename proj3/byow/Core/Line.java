@@ -21,11 +21,11 @@ public class Line implements Iterable<Position> {
     }
 
     private int dx() {
-        return endPos.x - startPos.x;
+        return Position.dx(startPos, endPos);
     }
 
     private int dy() {
-        return endPos.y - startPos.y;
+        return Position.dy(startPos, endPos);
     }
 
     private boolean isSteep() {
@@ -38,10 +38,15 @@ public class Line implements Iterable<Position> {
         if (dx == 0 && dy == 0) {
             return pos.equals(startPos);
         }
+        // The pos should in range [x1, x2], [y1, y2].
+        Rect rect = new Rect(startPos, endPos);
+        if (!rect.contains(pos)) {
+            return false;
+        }
         if (!isSteep()) {
-            return Math.abs(pos.y - getY(pos.x)) <= 0.5f;
+            return pos.y == getY(pos.x);
         } else {
-            return Math.abs(pos.x - getX(pos.y)) <= 0.5f;
+            return pos.x == getX(pos.y);
         }
     }
 

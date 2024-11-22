@@ -16,6 +16,14 @@ public class Position {
         return new Position(x, y);
     }
 
+    public static int dx(Position startPos, Position endPos) {
+        return endPos.x -startPos.x;
+    }
+
+    public static int dy(Position startPos, Position endPos) {
+        return endPos.y -startPos.y;
+    }
+
     @Override
     public boolean equals(Object obj) {
         if (this == obj) {
