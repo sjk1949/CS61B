@@ -1,5 +1,6 @@
 package byow.Core;
 
+import byow.Core.Structure.Room;
 import byow.TileEngine.TETile;
 import byow.TileEngine.Tileset;
 
@@ -10,7 +11,8 @@ public class WorldGenerator {
     public static TETile[][] generate(WorldGenerationParameters mgp) {
         TETile[][] world = createEmptyWorld(mgp.width, mgp.height);
         fillWithTile(world, Tileset.GRASS);
-        DrawTile.drawLine(world, new Position(3,4), new Position(6,5), Tileset.WALL);
+        Room room = new Room(new Position(3, 4), 6, 4);
+        room.drawOn(world);
         return world;
     }
 

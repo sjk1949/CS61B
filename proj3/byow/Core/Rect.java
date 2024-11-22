@@ -3,9 +3,9 @@ package byow.Core;
 public class Rect {
 
     /** The left down position of the rectangle. */
-    private Position position;
-    public int width;
-    public int height;
+    private final Position position;
+    private final int width;
+    private final int height;
 
     public Rect(Position position, int width, int height) {
         this.position = position;
@@ -38,5 +38,45 @@ public class Rect {
 
     public int up() {
         return position.y + height - 1;
+    }
+
+    public Position getLeftDownPos() {
+        return position;
+    }
+
+    public Position getLeftUpPos() {
+        return position.shift(0, height() - 1);
+    }
+
+    public Position getRightDownPos() {
+        return position.shift(width() - 1, 0);
+    }
+
+    public Position getRightUpPos() {
+        return position.shift(width() - 1, height() - 1);
+    }
+
+    public Line getLeftLine() {
+        return new Line(getLeftDownPos(), getLeftUpPos());
+    }
+
+    public Line getRightLine() {
+        return new Line(getRightDownPos(), getRightUpPos());
+    }
+
+    public Line getDownLine() {
+        return new Line(getLeftDownPos(), getRightDownPos());
+    }
+
+    public Line getUpLine() {
+        return new Line(getLeftUpPos(), getRightUpPos());
+    }
+
+    public int width() {
+        return width;
+    }
+
+    public int height() {
+        return height;
     }
 }

@@ -16,6 +16,10 @@ public class Position {
         return new Position(x, y);
     }
 
+    public Position shift(int dx, int dy) {
+        return new Position(x + dx, y + dy);
+    }
+
     public static int dx(Position startPos, Position endPos) {
         return endPos.x -startPos.x;
     }
