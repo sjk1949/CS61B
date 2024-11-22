@@ -12,19 +12,37 @@ public class Line implements Iterable<Position> {
         this.endPos = endPos;
     }
 
-    private float getY(int x) {
-        assert startPos.x - endPos.x != 0;
-        System.out.println("x:" + x + "y:" + ((float) (startPos.y - endPos.y) / (startPos.x - endPos.x) * (x - startPos.x) + startPos.y));
-        return (float) (startPos.y - endPos.y) / (startPos.x - endPos.x) * (x - startPos.x) + startPos.y;
+    private int getY(int x) {
+        return rint((float) dy() / dx() * (x - startPos.x) + startPos.y);
+    }
+
+    private int getX(int y) {
+        return rint((float) dx() / dy() * (y - startPos.y) + startPos.x);
+    }
+
+    private int dx() {
+        return endPos.x - startPos.x;
+    }
+
+    private int dy() {
+        return endPos.y - startPos.y;
+    }
+
+    private boolean isSteep() {
+        return Math.abs(dx()) < Math.abs(dy());
     }
 
     public boolean contains(Position pos) {
-        if (startPos.x == endPos.x) {
-            return inRange(startPos.y, endPos.y, pos.y);
-        } else if (inRange(startPos.x, endPos.x, pos.x)) {
-            return Math.abs(pos.y - getY(pos.x)) <= 0.5f;
+        int dx = Math.abs(dx());
+        int dy = Math.abs(dy());
+        if (dx == 0 && dy == 0) {
+            return pos.equals(startPos);
         }
-        return false;
+        if (!isSteep()) {
+            return Math.abs(pos.y - getY(pos.x)) <= 0.5f;
+        } else {
+            return Math.abs(pos.x - getX(pos.y)) <= 0.5f;
+        }
     }
 
     @Override
@@ -34,31 +52,38 @@ public class Line implements Iterable<Position> {
 
     private class PosIterator implements Iterator<Position> {
 
-        private final Position currPos = startPos.copy();
-        /** The direction x variate, if endPos.x > startPos.x, sign = 1, else, sign = -1, if ==, sign = 0. */
-        private final int sign = getSign(endPos.x - startPos.x);
+        private final Position nextPos = startPos.copy();
+        /** The direction x|y variate, if the line is steep, choose y, else choose x */
+        private final int sign = isSteep() ? getSign(dy()) : getSign(dx());
 
         @Override
         public boolean hasNext() {
-            return !currPos.equals(endPos);
+            return Line.this.contains(nextPos);
         }
 
         @Override
         public Position next() {
-            Position returnPos = currPos.copy();
-            currPos.x += sign;
-            currPos.y = rint(getY(currPos.x));
-            System.out.println(returnPos);
-            return returnPos;
+            Position currPos = nextPos.copy();
+            if (isSteep()) {
+                nextPos.y += sign;
+                nextPos.x = getX(nextPos.y);
+            } else {
+                nextPos.x += sign;
+                nextPos.y = getY(nextPos.x);
+            }
+            return currPos;
         }
 
-        private int getSign(int x) {
-            return Integer.compare(x, 0);
-        }
+    }
 
-        private int rint(float x) {
-            return (int) (x + 0.5f);
-        }
+    /** if x>0, return 1, x=0, return 0, x<0, return -1. */
+    private int getSign(int x) {
+        return Integer.compare(x, 0);
+    }
+
+    /** Return the nearest int number. */
+    private int rint(float x) {
+        return (int) (x + 0.5f);
     }
 
     /**
