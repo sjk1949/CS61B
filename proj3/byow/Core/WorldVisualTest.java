@@ -7,14 +7,15 @@ import byow.TileEngine.TETile;
 
 public class WorldVisualTest {
 
-    private static final int WIDTH = 40;
+    private static final int WIDTH = 60;
     private static final int HEIGHT = 40;
+    private static final long SEED  = 121;
 
     public static void main(String[] args) {
         TERenderer ter = new TERenderer();
         ter.initialize(WIDTH, HEIGHT);
 
-        TETile[][] world = WorldGenerator.generate(WorldGenerationParameters.getDefalutParameters());
+        TETile[][] world = WorldGenerator.generate(new WorldGenerationParameters(WIDTH, HEIGHT, SEED));
         ter.renderFrame(world);
     }
 }

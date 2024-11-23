@@ -24,6 +24,10 @@ public class Rect {
                 pos.y >= down() && pos.y <= up();
     }
 
+    public boolean contains(Rect other) {
+        return left() <= other.left() && right() >= other.right() && down() <= other.down() && up() >= other.up();
+    }
+
     public int left() {
         return position.x;
     }
