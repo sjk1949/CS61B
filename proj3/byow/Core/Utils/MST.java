@@ -7,21 +7,28 @@ import java.util.Set;
 public class MST<T> {
 
     private final Graph<T> graph;
-    private Graph.Edge[] edges;
-    private Set<Graph<T>.Edge> mstEdges;
+    private final Graph<T>.Edge[] edges;
+    private Graph<T> graphMST;
 
     public MST(Graph<T> graph) {
         this.graph = graph;
         this.edges = this.graph.getEdgeSet().toArray(new Graph.Edge[0]);
         Arrays.sort(this.edges);
-        this.mstEdges = new HashSet<>();
     }
 
-    public Graph<T> findMST() {
-        Graph<T> graph = new Graph<>(this.graph.getVertexSet());
-        for (Graph.Edge edge : edges) {
-
+    public Graph<T> findGraphMST() {
+        if (this.graphMST != null) {
+            return this.graphMST;
         }
-        return graph;
+        Graph<T> graphMST = new Graph<>(graph.getVertexSet());
+        DisjointSet<T> disjointSet = new DisjointSet<>(this.graph.getVertexSet());
+        for (Graph<T>.Edge edge : edges) {
+            if (!disjointSet.isUnion(edge.v1, edge.v2)) {
+                disjointSet.union(edge.v1, edge.v2);
+                graphMST.addEdge(edge);
+            }
+        }
+        this.graphMST = graphMST;
+        return graphMST;
     }
 }

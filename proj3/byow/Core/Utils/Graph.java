@@ -13,12 +13,15 @@ public class Graph<T> {
         int V = vertexes.size();
         this.edges = 0;
         this.matrix = new int[V][V];
-        this.map = new BiMap<>();
-        int i = 0;
-        for (T vertex : vertexes) {
-            this.map.put(i, vertex);
-            this.matrix[i][i] = -1;
-            i++;
+        initialize(this.matrix);
+        this.map = BiMap.createIndexMap(vertexes);
+    }
+
+    private void initialize(int[][] matrix) {
+        for (int i = 0; i < matrix.length; i++) {
+            for (int j = 0; j < matrix[0].length; j++) {
+                matrix[i][j] = -1;
+            }
         }
     }
 
@@ -43,6 +46,10 @@ public class Graph<T> {
         }
         matrix[map.getKey(v1)][map.getKey(v2)] = w;
         matrix[map.getKey(v2)][map.getKey(v1)] = w;
+    }
+
+    public void addEdge(Edge edge) {
+        addEdge(edge.v1, edge.v2, edge.weight);
     }
 
     public void removeEdge(T v1, T v2) {
@@ -89,6 +96,24 @@ public class Graph<T> {
         return set;
     }
 
+    @Override
+    public String toString() {
+        StringBuilder string = new StringBuilder("Graph\n");
+        string.append("\t");
+        for (T v : getVertexSet()) {
+            string.append(v.toString()).append("\t");
+        }
+        string.append("\n");
+        for (T v1 : getVertexSet()) {
+            string.append(v1.toString()).append("\t");
+            for (T v2 : getVertexSet()) {
+                string.append(getWeight(v1, v2)).append("\t");
+            }
+            string.append("\n");
+        }
+        return string.toString();
+    }
+
     public class Edge implements Comparable<Edge> {
 
         public T v1;
@@ -104,6 +129,33 @@ public class Graph<T> {
         @Override
         public int compareTo(Edge o) {
             return weight - o.weight;
+        }
+
+        @Override
+        public boolean equals(Object obj) {
+            if (this == obj) {
+                return true;
+            }
+            if (obj == null) {
+                return false;
+            }
+            if (obj.getClass() == Edge.class) {
+                Edge edge = (Edge) obj;
+                if ((this.v1.equals(edge.v1) && this.v2.equals(edge.v2)) || (this.v1.equals(edge.v2) && this.v2.equals(edge.v1))) {
+                    return this.weight == edge.weight;
+                }
+            }
+            return false;
+        }
+
+        @Override
+        public int hashCode() {
+            return Objects.hash(v1.hashCode() + v2.hashCode(), weight);
+        }
+
+        @Override
+        public String toString() {
+            return "(" + v1.toString() + ", " + v2.toString() + ")";
         }
     }
 }

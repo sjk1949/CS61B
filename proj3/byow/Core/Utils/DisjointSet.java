@@ -5,7 +5,7 @@ import java.util.Set;
 
 public class DisjointSet<T> {
 
-    private int[] tree;
+    private final int[] tree;
     private final BiMap<Integer, T> map;
 
     public DisjointSet(Set<T> set) {
