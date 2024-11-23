@@ -30,6 +30,13 @@ public class Graph<T> {
         return matrix[map.getKey(v1)][map.getKey(v2)];
     }
 
+    public Edge getEdge(T v1, T v2) {
+        if (!existEdge(v1, v2)) {
+            return null;
+        }
+        return new Edge(v1, v2, getWeight(v1, v2));
+    }
+
     public void addEdge(T v1, T v2, int w) {
         if (!existEdge(v1, v2)) {
             this.edges += 1;
@@ -63,5 +70,40 @@ public class Graph<T> {
 
     int E() {
         return edges;
+    }
+
+    public Set<T> getVertexSet() {
+        return map.valueSet();
+    }
+
+    public Set<Edge> getEdgeSet() {
+        Set<Edge> set = new HashSet<>();
+        for (int i = 0; i < V(); i++) {
+            for (int j = i + 1; j < V(); j++) {
+                Edge edge = getEdge(map.getValue(i), map.getValue(j));
+                if (edge != null) {
+                    set.add(edge);
+                }
+            }
+        }
+        return set;
+    }
+
+    public class Edge implements Comparable<Edge> {
+
+        public T v1;
+        public T v2;
+        public int weight;
+
+        public Edge(T v1, T v2, int weight) {
+            this.v1 = v1;
+            this.v2 = v2;
+            this.weight = weight;
+        }
+
+        @Override
+        public int compareTo(Edge o) {
+            return weight - o.weight;
+        }
     }
 }

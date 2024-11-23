@@ -1,7 +1,6 @@
 package byow.Core.Utils;
 
-import java.util.HashMap;
-import java.util.Map;
+import java.util.*;
 
 /**
  * A one-to-one mapping table, where each K and V cannot be the same, can quickly achieve mutual lookup between K and V
@@ -13,6 +12,16 @@ public class BiMap<K ,V> {
     public BiMap() {
         keyToValue = new HashMap<>();
         valueToKey = new HashMap<>();
+    }
+
+    public static <T> BiMap<Integer, T> createIndexMap(Collection<T> values) {
+        BiMap<Integer, T> map = new BiMap<>();
+        int i = 0;
+        for (T value : values) {
+            map.put(i, value);
+            i++;
+        }
+        return map;
     }
 
     public void put(K key, V value) {
@@ -43,5 +52,13 @@ public class BiMap<K ,V> {
         if (key != null) {
             keyToValue.remove(key);
         }
+    }
+
+    public Set<K> keySet() {
+        return keyToValue.keySet();
+    }
+
+    public Set<V> valueSet() {
+        return valueToKey.keySet();
     }
 }
