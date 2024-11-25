@@ -60,6 +60,10 @@ public class Rect {
         return position.shift(width() - 1, height() - 1);
     }
 
+    public Position getCenterPos() {
+        return position.shift(width() / 2, height() / 2);
+    }
+
     public Line getLeftLine() {
         return new Line(getLeftDownPos(), getLeftUpPos());
     }

@@ -23,6 +23,10 @@ public class Structure {
         return rect.height();
     }
 
+    public Position getPos() {
+        return rect.getLeftDownPos();
+    }
+
     public Rect getRect() {
         return rect;
     }

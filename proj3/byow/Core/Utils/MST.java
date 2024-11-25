@@ -7,7 +7,7 @@ import java.util.Set;
 public class MST<T> {
 
     private final Graph<T> graph;
-    private final Graph<T>.Edge[] edges;
+    private final Graph<T>.Edge<T>[] edges;
     private Graph<T> graphMST;
 
     public MST(Graph<T> graph) {
@@ -22,7 +22,7 @@ public class MST<T> {
         }
         Graph<T> graphMST = new Graph<>(graph.getVertexSet());
         DisjointSet<T> disjointSet = new DisjointSet<>(this.graph.getVertexSet());
-        for (Graph<T>.Edge edge : edges) {
+        for (Graph<T>.Edge<T> edge : edges) {
             if (!disjointSet.isUnion(edge.v1, edge.v2)) {
                 disjointSet.union(edge.v1, edge.v2);
                 graphMST.addEdge(edge);

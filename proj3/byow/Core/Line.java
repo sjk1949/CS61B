@@ -1,6 +1,7 @@
 package byow.Core;
 
 import java.util.Iterator;
+import java.util.Objects;
 
 public class Line implements Iterable<Position> {
 
@@ -20,11 +21,39 @@ public class Line implements Iterable<Position> {
         return rint((float) dx() / dy() * (y - startPos.y) + startPos.x);
     }
 
-    private int dx() {
+    public Direction getDirection() {
+        if (startPos == endPos) {
+            return null;
+        }
+        if (startPos.x == endPos.x) {
+            return Direction.Vertical;
+        } else if (startPos.y == endPos.y) {
+            return Direction.Horizontal;
+        }
+        return null;
+    }
+
+    public Position getLeftPos() {
+        if (startPos.x <= endPos.x) {
+            return startPos;
+        } else {
+            return endPos;
+        }
+    }
+
+    public Position getDownPos() {
+        if (startPos.y <= endPos.y) {
+            return startPos;
+        } else {
+            return endPos;
+        }
+    }
+
+    public int dx() {
         return Position.dx(startPos, endPos);
     }
 
-    private int dy() {
+    public int dy() {
         return Position.dy(startPos, endPos);
     }
 
@@ -48,6 +77,14 @@ public class Line implements Iterable<Position> {
         } else {
             return pos.x == getX(pos.y);
         }
+    }
+
+    public double length() {
+        return Position.rDist(startPos, endPos);
+    }
+
+    public Line shift(int dx, int dy) {
+        return new Line(startPos.shift(dx, dy), endPos.shift(dx, dy));
     }
 
     @Override
@@ -82,12 +119,12 @@ public class Line implements Iterable<Position> {
     }
 
     /** if x>0, return 1, x=0, return 0, x<0, return -1. */
-    private int getSign(int x) {
+    private static int getSign(int x) {
         return Integer.compare(x, 0);
     }
 
     /** Return the nearest int number. */
-    private int rint(float x) {
+    private static int rint(float x) {
         return (int) (x + 0.5f);
     }
 
@@ -99,5 +136,25 @@ public class Line implements Iterable<Position> {
      */
     private boolean inRange(int x1, int x2, int x) {
         return (x >= x1 && x <= x2) || (x <= x1 && x >= x2);
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        if (this == obj) {
+            return true;
+        }
+        if (obj == null) {
+            return false;
+        }
+        if (obj.getClass() == Line.class) {
+            Line line = (Line) obj;
+            return (line.startPos.equals(startPos) && line.endPos.equals(endPos)) || (line.startPos.equals(endPos) && line.endPos.equals(startPos));
+        }
+        return false;
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(startPos, endPos) + Objects.hash(endPos, startPos);
     }
 }

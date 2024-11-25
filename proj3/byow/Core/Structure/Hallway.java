@@ -1,9 +1,6 @@
 package byow.Core.Structure;
 
-import byow.Core.Direction;
-import byow.Core.DrawTile;
-import byow.Core.Position;
-import byow.Core.Rect;
+import byow.Core.*;
 import byow.TileEngine.TETile;
 import byow.TileEngine.Tileset;
 
@@ -40,13 +37,18 @@ public class Hallway extends Structure {
     @Override
     public void drawOn(TETile[][] world) {
         Rect rect = getRect();
-        DrawTile.drawRect(world, rect, Tileset.FLOOR);
         if (direction == Direction.Horizontal) {
-            DrawTile.drawLine(world, rect.getUpLine(), Tileset.WALL);
-            DrawTile.drawLine(world, rect.getDownLine(), Tileset.WALL);
+            DrawTile.drawLineWithoutType(world, rect.getDownLine(), Tileset.WALL, Tileset.FLOOR);
+            for (Line line = rect.getDownLine().shift(0, 1); !line.equals(rect.getUpLine()); line = line.shift(0, 1)) {
+                DrawTile.drawLine(world, line, Tileset.FLOOR);
+            }
+            DrawTile.drawLineWithoutType(world, rect.getUpLine(), Tileset.WALL, Tileset.FLOOR);
         } else {
-            DrawTile.drawLine(world, rect.getLeftLine(), Tileset.WALL);
-            DrawTile.drawLine(world, rect.getRightLine(), Tileset.WALL);
+            DrawTile.drawLineWithoutType(world, rect.getLeftLine(), Tileset.WALL, Tileset.FLOOR);
+            for (Line line = rect.getLeftLine().shift(1, 0); !line.equals(rect.getRightLine()); line = line.shift(1, 0)) {
+                DrawTile.drawLine(world, line, Tileset.FLOOR);
+            }
+            DrawTile.drawLineWithoutType(world, rect.getRightLine(), Tileset.WALL, Tileset.FLOOR);
         }
     }
 }
