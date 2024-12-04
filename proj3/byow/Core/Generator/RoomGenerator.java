@@ -15,9 +15,9 @@ public class RoomGenerator {
     /** Times try to generate rooms that don't collide with each other. */
     private static final int ROOM_GEN_TRY_NUM = 100;
     private static final int MAX_ROOM_WIDTH = 12;
-    private static final int MIN_ROOM_WIDTH = 6;
+    private static final int MIN_ROOM_WIDTH = 8;
     private static final int MAX_ROOM_HEIGHT = 12;
-    private static final int MIN_ROOM_HEIGHT = 6;
+    private static final int MIN_ROOM_HEIGHT = 8;
 
     public static RoomManager generate(TETile[][] world, Random random) {
         RoomManager roomManager = new RoomManager();

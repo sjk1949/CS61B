@@ -1,7 +1,14 @@
 package byow.Core;
 
+import byow.Core.Generator.WorldGenerationParameters;
+import byow.Core.Generator.WorldGenerator;
+import byow.Core.InputDevice.InputDevice;
+import byow.Core.InputDevice.StringInputDevice;
+import byow.Networking.BYOWServer;
 import byow.TileEngine.TERenderer;
 import byow.TileEngine.TETile;
+
+import java.io.IOException;
 
 public class Engine {
     TERenderer ter = new TERenderer();
@@ -45,8 +52,23 @@ public class Engine {
         //
         // See proj3.byow.InputDemo for a demo of how you can make a nice clean interface
         // that works for many different input types.
+        long seed = 0;
+        InputDevice inputDevice = new StringInputDevice(input);
+        while (inputDevice.hasNextChar()) {
+            char c = inputDevice.getNextChar();
+            if (c == 'N' || c == 'n') {
+                seed = Menu.getSeed(inputDevice);
+            }
+        }
 
-        TETile[][] finalWorldFrame = null;
+        WorldGenerationParameters mgp = new WorldGenerationParameters(seed);
+        TETile[][] finalWorldFrame = WorldGenerator.generate(mgp);
         return finalWorldFrame;
+    }
+
+    public void interactWithRemoteClient(String input) throws IOException {
+        int portNumber = Integer.parseInt(input);
+        BYOWServer server = new BYOWServer(portNumber);
+        // TODO:
     }
 }

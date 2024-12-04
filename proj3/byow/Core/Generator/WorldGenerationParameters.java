@@ -17,6 +17,12 @@ public class WorldGenerationParameters {
         this.seed = seed;
     }
 
+    public WorldGenerationParameters(long seed) {
+        this.width = WIDTH;
+        this.height = HEIGHT;
+        this.seed = seed;
+    }
+
     public static WorldGenerationParameters getDefalutParameters() {
         return new WorldGenerationParameters(WIDTH, HEIGHT, SEED);
     }
